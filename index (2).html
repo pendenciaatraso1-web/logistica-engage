@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel de Volumetria & Cubagem – Engage Eletro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#F1F5F9; --surface:#FFFFFF; --ink:#0F172A; --ink-2:#475569; --muted:#94A3B8;
+    --primary:#1E3A8A; --primary-2:#3B82F6; --accent:#0891B2;
+    --ok:#059669; --ok-2:#10B981; --warn:#D97706; --warn-2:#F59E0B;
+    --danger:#DC2626; --danger-2:#EF4444; --purple:#7C3AED; --purple-2:#A78BFA;
+    --border:#E2E8F0; --border-2:#CBD5E1;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.04);
+    --shadow-lg: 0 10px 15px -3px rgba(15,23,42,.08), 0 4px 6px -4px rgba(15,23,42,.04);
+    --radius: 14px; --radius-sm: 10px;
+  }
+  html,body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-feature-settings:'cv02','cv03','cv04','cv11';-webkit-font-smoothing:antialiased;min-height:100vh}
+
+  header{background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 50%,#1E40AF 100%);color:#fff;padding:22px 32px;box-shadow:var(--shadow-lg);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .logo-svg{display:block}
+  .logo-text{display:flex;flex-direction:column;line-height:1.05;gap:1px}
+  .logo-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.025em;color:#fff}
+  .logo-tag{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.32em;color:#7DD3FC;text-transform:uppercase}
+  .header-divider{width:1px;height:34px;background:rgba(255,255,255,.18);margin:0 4px}
+  .product-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:600;color:rgba(255,255,255,.92);letter-spacing:-.005em}
+  .product-sub{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:rgba(255,255,255,.6);letter-spacing:.02em;margin-top:2px}
+  .pill{padding:7px 13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#E0F2FE;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.01em}
+
+  .container{padding:28px;max-width:1500px;margin:0 auto}
+  .tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap;background:var(--surface);padding:6px;border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);width:fit-content;max-width:100%}
+  .tab{padding:9px 16px;background:transparent;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:13px;color:var(--ink-2);transition:all .2s;font-family:inherit;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .tab:hover{color:var(--ink);background:#F1F5F9}
+  .tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 4px 12px rgba(30,58,138,.25)}
+  .tab-content{display:none;animation:fadeIn .25s ease}
+  .tab-content.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+  .panel{background:var(--surface);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow-sm);margin-bottom:18px;border:1px solid var(--border)}
+  .panel h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;color:var(--ink);margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  .panel h2 .h2-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary-2));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+
+  /* Hero metric — destaque grande */
+  .hero-metric{background:linear-gradient(135deg,#1E3A8A 0%,#3B82F6 100%);color:#fff;border-radius:var(--radius);padding:32px;margin-bottom:22px;box-shadow:0 10px 25px -5px rgba(30,58,138,.3);position:relative;overflow:hidden}
+  .hero-metric::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06)}
+  .hero-metric::after{content:'';position:absolute;bottom:-60px;right:60px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04)}
+  .hero-metric.ok{background:linear-gradient(135deg,#065F46 0%,#10B981 100%);box-shadow:0 10px 25px -5px rgba(16,185,129,.3)}
+  .hero-metric.purple{background:linear-gradient(135deg,#5B21B6 0%,#A78BFA 100%);box-shadow:0 10px 25px -5px rgba(124,58,237,.3)}
+
+  /* Variante split: dois números lado a lado */
+  .hero-split{display:grid;grid-template-columns:1fr 1fr;gap:24px;position:relative;z-index:1}
+  .hero-split-item{padding-right:20px}
+  .hero-split-item:first-child{border-right:1px solid rgba(255,255,255,.18)}
+  .hero-split-label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:8px}
+  .hero-split-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:48px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .hero-split-unit{font-size:18px;font-weight:600;opacity:.8;margin-left:6px}
+  .hero-split-sub{font-size:12.5px;opacity:.85;margin-top:6px}
+
+  .hero-content{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+  .hero-label{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.85;margin-bottom:8px}
+  .hero-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:56px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .hero-unit{font-size:22px;font-weight:600;opacity:.8;margin-left:8px}
+  .hero-context{font-size:13.5px;opacity:.85;margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .hero-filter-tag{display:inline-block;padding:5px 12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);border-radius:99px;font-size:12px;font-weight:600;letter-spacing:.02em}
+
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+  .kpi{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+  .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-2))}
+  .kpi.ok::before{background:linear-gradient(90deg,var(--ok),var(--ok-2))}
+  .kpi.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple-2))}
+  .kpi.warn::before{background:linear-gradient(90deg,var(--warn),var(--warn-2))}
+  .kpi-label{font-size:12px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:8px}
+  .kpi-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1.1}
+  .kpi-sub{font-size:12.5px;color:var(--ink-2);margin-top:8px}
+
+  .chart-wrap{position:relative;height:340px}
+  .chart-wrap.tall{height:420px}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+  .input{padding:9px 13px;border:1px solid var(--border-2);border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s;outline:none;min-width:240px}
+  .input:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+  .btn{padding:9px 16px;border:none;border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 4px 12px rgba(30,58,138,.2)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(30,58,138,.28)}
+  .btn-ghost{background:#F1F5F9;color:var(--ink-2);border:1px solid var(--border)}
+  .btn-ghost:hover{background:#E2E8F0;color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{text-align:left;padding:11px 14px;background:#F8FAFC;color:var(--ink-2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);position:sticky;top:0;cursor:pointer;user-select:none;white-space:nowrap}
+  thead th:hover{background:#F1F5F9;color:var(--ink)}
+  thead th.numeric{text-align:right}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--border)}
+  tbody td.numeric{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  tbody tr{transition:background .12s}
+  tbody tr:hover{background:#F8FAFC}
+  tbody tr.total-row{background:linear-gradient(135deg,#EFF6FF,#F0F9FF);font-weight:700}
+  tbody tr.total-row td{border-top:2px solid var(--primary-2);color:var(--primary)}
+  .table-wrap{max-height:560px;overflow:auto;border:1px solid var(--border);border-radius:var(--radius-sm)}
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty-icon{font-size:46px;margin-bottom:12px;opacity:.5}
+
+  .ranking{display:flex;flex-direction:column;gap:10px}
+  .rank-item{display:flex;align-items:center;gap:14px;padding:13px 16px;background:#F8FAFC;border-radius:var(--radius-sm);border:1px solid var(--border);transition:all .15s}
+  .rank-item:hover{background:#fff;box-shadow:var(--shadow-sm);transform:translateX(2px)}
+  .rank-pos{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;color:#fff;flex-shrink:0}
+  .rank-pos.gold{background:linear-gradient(135deg,#F59E0B,#D97706);box-shadow:0 4px 10px rgba(217,119,6,.3)}
+  .rank-pos.silver{background:linear-gradient(135deg,#94A3B8,#64748B);box-shadow:0 4px 10px rgba(100,116,139,.3)}
+  .rank-pos.bronze{background:linear-gradient(135deg,#B45309,#92400E);box-shadow:0 4px 10px rgba(146,64,14,.3)}
+  .rank-pos.normal{background:linear-gradient(135deg,var(--primary),var(--primary-2))}
+  .rank-info{flex:1;min-width:0}
+  .rank-name{font-weight:700;color:var(--ink);font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rank-meta{font-size:12px;color:var(--ink-2);margin-top:3px}
+  .rank-bar{height:7px;background:#E2E8F0;border-radius:99px;overflow:hidden;margin-top:7px}
+  .rank-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-2));border-radius:99px;transition:width .8s ease}
+  .rank-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--ink);text-align:right;min-width:110px}
+  .rank-value small{font-size:11px;font-weight:600;color:var(--ink-2);display:block;margin-top:1px}
+
+  .upload-area{border:2px dashed var(--border-2);border-radius:var(--radius);padding:50px 28px;text-align:center;background:#F8FAFC;transition:all .2s;cursor:pointer}
+  .upload-area:hover,.upload-area.drag{border-color:var(--primary-2);background:#EFF6FF}
+  .upload-icon{font-size:46px;margin-bottom:12px;color:var(--primary-2)}
+  .upload-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .upload-hint{font-size:13px;color:var(--ink-2);margin-bottom:18px}
+
+  /* Seletor de Galpão — barra logo abaixo do header */
+  .warehouse-bar{background:#fff;border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:var(--shadow-sm)}
+  .warehouse-bar-label{font-size:11.5px;color:var(--ink-2);font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+  .warehouse-bar-label::before{content:'🏭';font-size:14px}
+  .warehouse-selector{display:inline-flex;background:#F1F5F9;padding:4px;border-radius:var(--radius-sm);border:1px solid var(--border);gap:2px}
+  .warehouse-btn{padding:8px 16px;background:transparent;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--ink-2);transition:all .18s;font-family:inherit;display:flex;align-items:center;gap:7px;white-space:nowrap;position:relative}
+  .warehouse-btn:hover:not(.active):not(:disabled){color:var(--ink);background:rgba(255,255,255,.7)}
+  .warehouse-btn:disabled{opacity:.4;cursor:not-allowed}
+  .warehouse-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 3px 10px rgba(30,58,138,.22)}
+  .warehouse-btn .wh-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#94A3B8}
+  .warehouse-btn.has-data .wh-dot{background:#10B981;box-shadow:0 0 0 2px rgba(16,185,129,.18)}
+  .warehouse-btn.active .wh-dot{background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+  .warehouse-status{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+  .warehouse-status strong{color:var(--ink);font-weight:700}
+  @media (max-width:720px){
+    .warehouse-bar{padding:12px 18px;flex-direction:column;align-items:flex-start}
+    .warehouse-selector{width:100%;justify-content:space-between}
+    .warehouse-btn{flex:1;justify-content:center;font-size:12px;padding:8px 10px}
+  }
+
+  /* Alerta global de pedidos atrasados — sempre visível no topo */
+  .alert-strip{background:linear-gradient(135deg,#7F1D1D 0%,#DC2626 100%);color:#fff;border-radius:var(--radius);padding:16px 22px;margin-bottom:18px;box-shadow:0 8px 20px -4px rgba(220,38,38,.35);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .alert-strip:hover{transform:translateY(-2px);box-shadow:0 12px 26px -4px rgba(220,38,38,.45)}
+  .alert-strip::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.06)}
+  .alert-strip-left{display:flex;align-items:center;gap:14px;position:relative;z-index:1;flex:1;min-width:0}
+  .alert-icon{width:44px;height:44px;border-radius:11px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  .alert-text{min-width:0}
+  .alert-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .alert-title-count{font-size:22px;font-weight:800}
+  .alert-sub{font-size:12.5px;opacity:.9;margin-top:2px}
+  .alert-cta{padding:8px 14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:99px;font-size:12.5px;font-weight:700;letter-spacing:.02em;position:relative;z-index:1;white-space:nowrap;transition:all .15s}
+  .alert-strip:hover .alert-cta{background:rgba(255,255,255,.28)}
+  .alert-strip.hidden{display:none}
+
+  /* Badge de atrasados ao lado da transportadora */
+  .delay-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#FEE2E2;color:#991B1B;border-radius:99px;font-size:11px;font-weight:700;margin-left:8px;border:1px solid #FCA5A5;letter-spacing:.01em;vertical-align:middle}
+
+  /* Tag de dias de atraso para a tabela de atrasados */
+  .delay-tag{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+  .delay-tag.d3{background:#FEF3C7;color:#92400E}
+  .delay-tag.d4{background:#FED7AA;color:#9A3412}
+  .delay-tag.d5{background:#FECACA;color:#991B1B}
+  .delay-tag.d6{background:#FCA5A5;color:#7F1D1D;border:1px solid #DC2626}
+  .delay-tag.d7{background:#DC2626;color:#fff}
+
+  @media (max-width:720px){
+    header{padding:18px 18px;flex-direction:column;align-items:flex-start}
+    .container{padding:18px}
+    .panel{padding:18px}
+    .hero-metric{padding:24px 20px}
+    .hero-value{font-size:38px}
+    .hero-split{grid-template-columns:1fr;gap:16px}
+    .hero-split-item:first-child{border-right:none;border-bottom:1px solid rgba(255,255,255,.18);padding-bottom:16px;padding-right:0}
+    .hero-split-value{font-size:34px}
+    .input{min-width:0;width:100%}
+    .tabs{overflow-x:auto;width:100%;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  }
+  @media print{header,.tabs,.toolbar,.btn,.upload-area{display:none!important}body{background:#fff}.panel{box-shadow:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <svg class="logo-svg" width="46" height="46" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg" aria-label="Engage Eletro">
+        <defs>
+          <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#22D3EE"/>
+            <stop offset="50%" stop-color="#3B82F6"/>
+            <stop offset="100%" stop-color="#6366F1"/>
+          </linearGradient>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="rgba(255,255,255,.18)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,.04)"/>
+          </linearGradient>
+        </defs>
+        <rect x="1" y="1" width="44" height="44" rx="11" fill="url(#ringGrad)" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
+        <path d="M26 8 L14 26 L21 26 L18 38 L32 20 L24 20 L26 8 Z" fill="url(#boltGrad)" stroke="rgba(255,255,255,.4)" stroke-width=".6" stroke-linejoin="round"/>
+      </svg>
+      <div class="logo-text">
+        <span class="logo-name">ENGAGE</span>
+        <span class="logo-tag">Eletro</span>
+      </div>
+    </div>
+    <div class="header-divider"></div>
+    <div>
+      <div class="product-name">Painel de Volumetria & Cubagem</div>
+      <div class="product-sub">Logística · Expedição · Transportadoras</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span class="pill" id="totalPill">0 NFs</span>
+    <span class="pill" style="background:rgba(34,211,238,.18);border-color:rgba(34,211,238,.35);color:#A5F3FC;" id="datePill"></span>
+  </div>
+</header>
+
+<!-- BARRA DE SELEÇÃO DE GALPÃO -->
+<div class="warehouse-bar">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <span class="warehouse-bar-label">Galpão</span>
+    <div class="warehouse-selector" role="tablist">
+      <button class="warehouse-btn active" data-galpao="serra" id="btnSerra" onclick="selecionarGalpao('serra')">
+        <span class="wh-dot"></span>Serra/ES
+      </button>
+      <button class="warehouse-btn" data-galpao="extrema" id="btnExtrema" onclick="selecionarGalpao('extrema')">
+        <span class="wh-dot"></span>Extrema/MG
+      </button>
+      <button class="warehouse-btn" data-galpao="todos" id="btnTodos" onclick="selecionarGalpao('todos')">
+        🌎 Total
+      </button>
+    </div>
+  </div>
+  <div class="warehouse-status" id="warehouseStatus">Nenhum galpão carregado</div>
+</div>
+
+<div class="container">
+
+  <!-- ALERTA GLOBAL DE ATRASADOS -->
+  <div class="alert-strip hidden" id="alertStrip" onclick="irParaAtrasados()">
+    <div class="alert-strip-left">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text">
+        <div class="alert-title">
+          <span class="alert-title-count" id="alertCount">0</span>
+          <span>pedidos atrasados na expedição</span>
+        </div>
+        <div class="alert-sub" id="alertSub">— Aguardando há mais de 2 dias desde a emissão</div>
+      </div>
+    </div>
+    <div class="alert-cta">Ver detalhes →</div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="volgeral" role="tab">📊 Volumetria Geral</button>
+    <button class="tab" data-tab="voltransp" role="tab">📦 Volumetria por Transportadora</button>
+    <button class="tab" data-tab="cubgeral" role="tab">🔁 Cubagem Geral</button>
+    <button class="tab" data-tab="cubtransp" role="tab">🏆 Cubagem por Transportadora</button>
+    <button class="tab" data-tab="volcarregado" role="tab">📈 Volume Total Carregado</button>
+    <button class="tab" data-tab="atrasados" role="tab" style="color:#DC2626;">⚠️ Atrasados</button>
+    <button class="tab" data-tab="upload" role="tab">📁 Importar</button>
+  </div>
+
+  <div id="emptyState" class="panel" style="text-align:center;padding:60px 30px;">
+    <div style="font-size:60px;margin-bottom:14px;opacity:.5;">📦</div>
+    <h2 style="border:none;justify-content:center;margin-bottom:8px;">Nenhum dado carregado</h2>
+    <p style="font-size:14px;color:var(--ink-2);margin-bottom:22px;">Importe a planilha de Volumetria na última aba para começar.</p>
+    <button class="btn btn-primary" onclick="irParaUpload()">📁 Importar Planilha</button>
+  </div>
+
+  <!-- 1) VOLUMETRIA GERAL — Coluna Q, separa por status -->
+  <div class="tab-content active" id="tab-volgeral">
+    <div class="hero-metric">
+      <div class="hero-split">
+        <div class="hero-split-item">
+          <div class="hero-split-label">⏳ Aguardando Expedição</div>
+          <div><span class="hero-split-value" id="volGeralAguard">—</span><span class="hero-split-unit">volumes</span></div>
+          <div class="hero-split-sub" id="volGeralAguardNFs">— NFs</div>
+        </div>
+        <div class="hero-split-item">
+          <div class="hero-split-label">✅ Expedição Completa</div>
+          <div><span class="hero-split-value" id="volGeralCompl">—</span><span class="hero-split-unit">volumes</span></div>
+          <div class="hero-split-sub" id="volGeralComplNFs">— NFs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-bottom:18px;">
+      <div class="kpi"><div class="kpi-label">Total Geral</div><div class="kpi-value" id="volGeralTotal">—</div><div class="kpi-sub">volumes (somando os dois status)</div></div>
+      <div class="kpi warn"><div class="kpi-label">% Aguardando</div><div class="kpi-value" id="volGeralPctAguard">—</div><div class="kpi-sub">do total de volumes</div></div>
+      <div class="kpi ok"><div class="kpi-label">% Expedido</div><div class="kpi-value" id="volGeralPctCompl">—</div><div class="kpi-sub">do total de volumes</div></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">📊</span>Comparativo Visual — Volumes por Status</h2>
+      <div class="chart-wrap"><canvas id="chartVolGeral"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 2) VOLUMETRIA POR TRANSPORTADORA — Coluna Q, só Aguardando -->
+  <div class="tab-content" id="tab-voltransp">
+    <div class="hero-metric">
+      <div class="hero-content">
+        <div>
+          <div class="hero-label">Volumetria por Transportadora — Soma de NF_VOLUME (Coluna Q)</div>
+          <div><span class="hero-value" id="volTranspTotal">—</span><span class="hero-unit">volumes</span></div>
+          <div class="hero-context">
+            <span class="hero-filter-tag">⏳ Filtro: NF_STATUS_EXPEDICAO = "Aguardando Expedicao"</span>
+          </div>
+        </div>
+        <div style="font-size:80px;opacity:.25;">📦</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">🏆</span>Ranking de Volumes</h2>
+      <div class="ranking" id="rankingVolTransp"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">📋</span>Detalhamento Completo</h2>
+      <div class="toolbar">
+        <input type="text" class="input" id="searchVolTransp" placeholder="🔍 Buscar transportadora..." />
+        <button class="btn btn-ghost" onclick="exportarVolTransp()">⬇ Exportar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tableVolTransp">
+          <thead>
+            <tr>
+              <th class="numeric" style="width:70px;">#</th>
+              <th>Transportadora</th>
+              <th class="numeric">Volumes</th>
+              <th class="numeric">NFs</th>
+              <th class="numeric">Média Vol/NF</th>
+              <th class="numeric">% do Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3) CUBAGEM GERAL — Coluna S, separa por status -->
+  <div class="tab-content" id="tab-cubgeral">
+    <div class="hero-metric purple">
+      <div class="hero-split">
+        <div class="hero-split-item">
+          <div class="hero-split-label">⏳ Aguardando Expedição</div>
+          <div><span class="hero-split-value" id="cubGeralAguard">—</span><span class="hero-split-unit">m³</span></div>
+          <div class="hero-split-sub" id="cubGeralAguardNFs">— NFs</div>
+        </div>
+        <div class="hero-split-item">
+          <div class="hero-split-label">✅ Expedição Completa</div>
+          <div><span class="hero-split-value" id="cubGeralCompl">—</span><span class="hero-split-unit">m³</span></div>
+          <div class="hero-split-sub" id="cubGeralComplNFs">— NFs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-bottom:18px;">
+      <div class="kpi purple"><div class="kpi-label">Cubagem Total Geral</div><div class="kpi-value" id="cubGeralTotal">—</div><div class="kpi-sub">m³ (somando os dois status)</div></div>
+      <div class="kpi warn"><div class="kpi-label">% Aguardando</div><div class="kpi-value" id="cubGeralPctAguard">—</div><div class="kpi-sub">da cubagem total</div></div>
+      <div class="kpi ok"><div class="kpi-label">% Expedido</div><div class="kpi-value" id="cubGeralPctCompl">—</div><div class="kpi-sub">da cubagem total</div></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">🔁</span>Comparativo Visual — Cubagem por Status</h2>
+      <div class="chart-wrap"><canvas id="chartCubGeral"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 4) CUBAGEM POR TRANSPORTADORA — Coluna S, só Aguardando -->
+  <div class="tab-content" id="tab-cubtransp">
+    <div class="hero-metric purple">
+      <div class="hero-content">
+        <div>
+          <div class="hero-label">Cubagem por Transportadora — Soma de NF_CUBAGEM (Coluna S)</div>
+          <div><span class="hero-value" id="cubTranspTotal">—</span><span class="hero-unit">m³</span></div>
+          <div class="hero-context">
+            <span class="hero-filter-tag">⏳ Filtro: NF_STATUS_EXPEDICAO = "Aguardando Expedicao"</span>
+          </div>
+        </div>
+        <div style="font-size:80px;opacity:.25;">🏆</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">🏆</span>Ranking de Cubagem</h2>
+      <div class="ranking" id="rankingCubTransp"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">📋</span>Detalhamento Completo</h2>
+      <div class="toolbar">
+        <input type="text" class="input" id="searchCubTransp" placeholder="🔍 Buscar transportadora..." />
+        <button class="btn btn-ghost" onclick="exportarCubTransp()">⬇ Exportar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tableCubTransp">
+          <thead>
+            <tr>
+              <th class="numeric" style="width:70px;">#</th>
+              <th>Transportadora</th>
+              <th class="numeric">Cubagem (m³)</th>
+              <th class="numeric">NFs</th>
+              <th class="numeric">Média m³/NF</th>
+              <th class="numeric">% do Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5) VOLUME TOTAL CARREGADO — Coluna Q, só Expedição Completa, por transportadora -->
+  <div class="tab-content" id="tab-volcarregado">
+    <div class="hero-metric ok">
+      <div class="hero-content">
+        <div>
+          <div class="hero-label">Volume Total Carregado — Soma de NF_VOLUME (Coluna Q)</div>
+          <div><span class="hero-value" id="volCarregadoTotal">—</span><span class="hero-unit">volumes</span></div>
+          <div class="hero-context">
+            <span class="hero-filter-tag">✅ Filtro: NF_STATUS_EXPEDICAO = "Expedicao Completa"</span>
+          </div>
+        </div>
+        <div style="font-size:80px;opacity:.25;">📈</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">🏆</span>Ranking de Volume Carregado</h2>
+      <div class="ranking" id="rankingVolCarregado"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon">📋</span>Detalhamento Completo</h2>
+      <div class="toolbar">
+        <input type="text" class="input" id="searchVolCarregado" placeholder="🔍 Buscar transportadora..." />
+        <button class="btn btn-ghost" onclick="exportarVolCarregado()">⬇ Exportar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tableVolCarregado">
+          <thead>
+            <tr>
+              <th class="numeric" style="width:70px;">#</th>
+              <th>Transportadora</th>
+              <th class="numeric">Volumes Carregados</th>
+              <th class="numeric">NFs</th>
+              <th class="numeric">Média Vol/NF</th>
+              <th class="numeric">% do Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6) ATRASADOS — Aguardando Expedição há mais de 2 dias -->
+  <div class="tab-content" id="tab-atrasados">
+    <div class="hero-metric" style="background:linear-gradient(135deg,#7F1D1D 0%,#DC2626 100%);box-shadow:0 10px 25px -5px rgba(220,38,38,.3);">
+      <div class="hero-content">
+        <div>
+          <div class="hero-label">⚠️ Pedidos Atrasados na Expedição</div>
+          <div><span class="hero-value" id="atrasadosTotal">—</span><span class="hero-unit">NFs atrasadas</span></div>
+          <div class="hero-context">
+            <span class="hero-filter-tag">Aguardando Expedicao + emissão > 2 dias</span>
+            <span class="hero-filter-tag" id="atrasadosDataRef">Referência: hoje</span>
+          </div>
+        </div>
+        <div style="font-size:80px;opacity:.25;">⚠️</div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-bottom:18px;">
+      <div class="kpi" style="border-left:4px solid #F59E0B;"><div class="kpi-label">Atrasados 3 dias</div><div class="kpi-value" id="atras3">—</div><div class="kpi-sub">há 3 dias aguardando</div></div>
+      <div class="kpi" style="border-left:4px solid #EA580C;"><div class="kpi-label">Atrasados 4 dias</div><div class="kpi-value" id="atras4">—</div><div class="kpi-sub">situação preocupante</div></div>
+      <div class="kpi" style="border-left:4px solid #DC2626;"><div class="kpi-label">Atrasados 5 dias</div><div class="kpi-value" id="atras5">—</div><div class="kpi-sub">prioridade alta</div></div>
+      <div class="kpi" style="border-left:4px solid #7F1D1D;"><div class="kpi-label">Atrasados 6+ dias</div><div class="kpi-value" id="atras6mais">—</div><div class="kpi-sub">crítico</div></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);">⚠️</span>Atrasados por Transportadora</h2>
+      <div class="ranking" id="rankingAtrasados"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="h2-icon" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);">📋</span>Lista Detalhada de NFs Atrasadas</h2>
+      <div class="toolbar">
+        <input type="text" class="input" id="searchAtrasados" placeholder="🔍 Buscar transportadora ou NF..." />
+        <button class="btn btn-ghost" onclick="exportarAtrasados()">⬇ Exportar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tableAtrasados">
+          <thead>
+            <tr>
+              <th>NF Número</th>
+              <th>Transportadora</th>
+              <th class="numeric">Emissão</th>
+              <th class="numeric">Dias Aguardando</th>
+              <th class="numeric">Volumes</th>
+              <th class="numeric">Cubagem (m³)</th>
+              <th>Destino</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7) UPLOAD -->
+  <div class="tab-content" id="tab-upload">
+    <div class="panel">
+      <h2><span class="h2-icon">📁</span>Importar Planilha de Volumetria</h2>
+      <div class="banner banner-info">
+        <span>ℹ️</span>
+        <span>Importe um único arquivo Excel contendo as duas abas: <strong>"Serra"</strong> e <strong>"Extrema"</strong>. O painel detecta automaticamente cada galpão pelo nome da aba e separa os dados.</span>
+      </div>
+
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📤</div>
+        <div class="upload-title">Arraste o arquivo Excel aqui</div>
+        <div class="upload-hint">com as abas "Serra" e "Extrema" — ou clique para selecionar</div>
+        <button class="btn btn-primary" type="button" onclick="document.getElementById('fileInput').click();">Selecionar Arquivo</button>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;" />
+      </div>
+      <div id="uploadStatus" style="margin-top:14px;"></div>
+
+      <!-- Status compacto por galpão após importação -->
+      <div id="galpoesStatusGrid" style="display:none;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:18px;">
+        <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary-2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;">🏭</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink);">Aba "Serra"</div>
+            <div style="font-size:12px;color:var(--ink-2);margin-top:2px;" id="statusSerra">—</div>
+          </div>
+          <div style="font-size:18px;" id="iconSerra">⚪</div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#5B21B6,#A78BFA);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;">🏭</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink);">Aba "Extrema"</div>
+            <div style="font-size:12px;color:var(--ink-2);margin-top:2px;" id="statusExtrema">—</div>
+          </div>
+          <div style="font-size:18px;" id="iconExtrema">⚪</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;padding:18px;background:#F8FAFC;border-radius:var(--radius-sm);border:1px solid var(--border);">
+        <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;">📐 Lógica de Cálculo das Abas</h3>
+        <div style="font-size:13px;color:var(--ink-2);line-height:1.8;">
+          <div><strong style="color:var(--primary);">📊 Volumetria Geral:</strong> soma da coluna Q, separada por status (Aguardando vs Completa).</div>
+          <div><strong style="color:var(--primary);">📦 Volumetria por Transportadora:</strong> soma da coluna Q apenas com status "Aguardando Expedicao", agrupada por transportadora.</div>
+          <div><strong style="color:var(--purple);">🔁 Cubagem Geral:</strong> soma da coluna S, separada por status (Aguardando vs Completa).</div>
+          <div><strong style="color:var(--purple);">🏆 Cubagem por Transportadora:</strong> soma da coluna S apenas com status "Aguardando Expedicao", agrupada por transportadora.</div>
+          <div><strong style="color:var(--ok);">📈 Volume Total Carregado:</strong> soma da coluna Q apenas com status "Expedicao Completa", agrupada por transportadora.</div>
+          <div><strong style="color:#DC2626;">⚠️ Atrasados:</strong> NFs "Aguardando Expedicao" com emissão há mais de 2 dias.</div>
+          <div style="margin-top:10px;"><strong>🔗 Aglutinação de Transportadoras:</strong> sufixos como SERRA 18/19, SDF, números soltos são removidos automaticamente (ex: BRASIL WEB SERRA 18 + 19 + SDF → BRASIL WEB).</div>
+          <div style="margin-top:10px;"><strong>🏭 Galpões:</strong> nomeie as abas do Excel como <strong>"Serra"</strong> e <strong>"Extrema"</strong>. Use o seletor no topo para alternar entre eles ou ver o total das duas unidades.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
+const state = {
+  dados: { serra: [], extrema: [] },     // NFs separadas por galpão
+  galpaoAtivo: 'serra',                  // 'serra' | 'extrema' | 'todos'
+  charts: {},
+  busca: {volTransp:'', cubTransp:'', volCarregado:'', atrasados:''}
+};
+
+// Wrapper para acesso retrocompatível: state.nfs retorna sempre as NFs do galpão ativo
+Object.defineProperty(state, 'nfs', {
+  get() {
+    if (state.galpaoAtivo === 'todos') {
+      return [...state.dados.serra, ...state.dados.extrema];
+    }
+    return state.dados[state.galpaoAtivo] || [];
+  }
+});
+
+const STATUS_AGUARDANDO = 'AGUARDANDO EXPEDICAO';
+const STATUS_COMPLETA = 'EXPEDICAO COMPLETA';
+const DIAS_LIMITE_ATRASO = 2;  // > 2 dias = atrasado
+
+const HEADERS_MAP = {
+  transp: ['nf_transportadora','transportadora'],
+  volumes: ['nf_volume','volume','volumes'],
+  cubagem: ['nf_cubagem','cubagem'],
+  statusExp: ['nf_status_expedicao','status_expedicao','status'],
+  emissao: ['nf_emissao','emissao','data_emissao','data'],
+  numero: ['nf_numero','numero','numero_nf'],
+  cidade: ['nf_cidade','cidade'],
+  uf: ['nf_uf','uf','estado']
+};
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('datePill').textContent =
+    new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+      const tabId = t.dataset.tab;
+      if (state.nfs.length) {
+        document.getElementById('emptyState').style.display = 'none';
+        setTimeout(() => renderTudo(), 50);
+      } else if (tabId !== 'upload') {
+        document.getElementById('emptyState').style.display = 'block';
+      } else {
+        document.getElementById('emptyState').style.display = 'none';
+      }
+    });
+  });
+
+  // Buscas independentes por aba
+  document.getElementById('searchVolTransp').addEventListener('input', e => {
+    state.busca.volTransp = e.target.value.toLowerCase();
+    renderVolTransp();
+  });
+  document.getElementById('searchCubTransp').addEventListener('input', e => {
+    state.busca.cubTransp = e.target.value.toLowerCase();
+    renderCubTransp();
+  });
+  document.getElementById('searchVolCarregado').addEventListener('input', e => {
+    state.busca.volCarregado = e.target.value.toLowerCase();
+    renderVolCarregado();
+  });
+  document.getElementById('searchAtrasados').addEventListener('input', e => {
+    state.busca.atrasados = e.target.value.toLowerCase();
+    renderAtrasados();
+  });
+
+  setupUpload();
+  atualizarSeletorGalpao();
+});
+
+function irParaUpload() {
+  document.querySelector('[data-tab="upload"]').click();
+}
+
+function irParaAtrasados() {
+  document.querySelector('[data-tab="atrasados"]').click();
+}
+
+/* ============================================================
+   SELEÇÃO DE GALPÃO
+   ============================================================ */
+function selecionarGalpao(galpao) {
+  // Não permite selecionar galpão sem dados (exceto "todos" se ao menos um tiver)
+  if (galpao === 'serra' && !state.dados.serra.length) return;
+  if (galpao === 'extrema' && !state.dados.extrema.length) return;
+  if (galpao === 'todos' && !state.dados.serra.length && !state.dados.extrema.length) return;
+
+  state.galpaoAtivo = galpao;
+  atualizarSeletorGalpao();
+  if (state.nfs.length) renderTudo();
+}
+
+function atualizarSeletorGalpao() {
+  const temSerra = state.dados.serra.length > 0;
+  const temExtrema = state.dados.extrema.length > 0;
+  const temAlgum = temSerra || temExtrema;
+
+  const btnSerra = document.getElementById('btnSerra');
+  const btnExtrema = document.getElementById('btnExtrema');
+  const btnTodos = document.getElementById('btnTodos');
+
+  // Estado has-data (bolinha verde quando tem dados carregados)
+  btnSerra.classList.toggle('has-data', temSerra);
+  btnExtrema.classList.toggle('has-data', temExtrema);
+
+  // Habilitar/desabilitar
+  btnSerra.disabled = !temSerra;
+  btnExtrema.disabled = !temExtrema;
+  btnTodos.disabled = !(temSerra && temExtrema);
+  // O botão "todos" só faz sentido se ambos estiverem carregados
+  btnTodos.style.opacity = (temSerra && temExtrema) ? '1' : '.4';
+
+  // Active state
+  [btnSerra, btnExtrema, btnTodos].forEach(b => b.classList.remove('active'));
+  const ativo = document.getElementById('btn' + capitalizar(state.galpaoAtivo));
+  if (ativo) ativo.classList.add('active');
+
+  // Status text
+  const statusEl = document.getElementById('warehouseStatus');
+  if (!temAlgum) {
+    statusEl.innerHTML = 'Nenhum galpão carregado · <a href="#" onclick="irParaUpload();return false;" style="color:var(--primary);text-decoration:underline;">importar planilha</a>';
+  } else {
+    const partes = [];
+    if (temSerra) partes.push(`Serra/ES: <strong>${state.dados.serra.length.toLocaleString('pt-BR')} NFs</strong>`);
+    if (temExtrema) partes.push(`Extrema/MG: <strong>${state.dados.extrema.length.toLocaleString('pt-BR')} NFs</strong>`);
+    const visAtual = state.galpaoAtivo === 'todos' ? 'Total' : (state.galpaoAtivo === 'serra' ? 'Serra/ES' : 'Extrema/MG');
+    statusEl.innerHTML = `${partes.join(' · ')} <span style="opacity:.6;margin:0 6px;">|</span> Visualizando: <strong>${visAtual}</strong>`;
+  }
+}
+
+/* ============================================================
+   AGLUTINAÇÃO DE TRANSPORTADORAS
+   ============================================================ */
+function aglutinarTransp(nome) {
+  if (!nome) return '—';
+  let n = String(nome).toUpperCase().trim();
+
+  // 1. Sufixos de bases/galpões em Serra
+  n = n.replace(/\s+SERRA\s+(SDF\s+)?\d+(\s+SDF)?/g, '');
+  n = n.replace(/\s+SDF\s+\d+/g, '');
+  n = n.replace(/\s+STANDARD\s+\d+/g, '');
+  n = n.replace(/\s+LOGISTICA\s+(SDF\s+)?\d+/g, '');
+  n = n.replace(/\s+\d{2}$/g, '');
+
+  // 2. Sufixos de Extrema
+  n = n.replace(/\s+NOVA\s+EXTREMA/g, '');
+  n = n.replace(/\s+EXTREMA$/g, '');
+
+  // 3. Termos genéricos (após sufixos para não conflitar)
+  n = n.replace(/\s+CARGAS?\s+EXPRESSAS?$/g, '');
+  n = n.replace(/\s+TRANSPORTES?$/g, '');
+  n = n.replace(/\s+TRANSPORTADORA$/g, '');
+
+  // 4. Corrigir typo conhecido: PAJUÇURA → PAJUÇARA (mesma empresa)
+  n = n.replace(/PAJU[ÇC][UA]RA/g, 'PAJUÇARA');
+
+  return n.replace(/\s{2,}/g, ' ').trim();
+}
+
+/* ============================================================
+   AGREGADORES BÁSICOS
+   ============================================================ */
+function filtrarPorStatus(status) {
+  return state.nfs.filter(n => n.statusExp === status);
+}
+
+function agruparPorTransp(filtrados) {
+  const g = {};
+  filtrados.forEach(n => {
+    if (!g[n.transp]) g[n.transp] = {transp:n.transp, volumes:0, cubagem:0, nfs:0};
+    g[n.transp].volumes += n.volumes;
+    g[n.transp].cubagem += n.cubagem;
+    g[n.transp].nfs++;
+  });
+  return Object.values(g);
+}
+
+/* ============================================================
+   RENDER PRINCIPAL
+   ============================================================ */
+function renderTudo() {
+  if (!state.nfs.length) return;
+  document.getElementById('emptyState').style.display = 'none';
+  renderVolGeral();
+  renderVolTransp();
+  renderCubGeral();
+  renderCubTransp();
+  renderVolCarregado();
+  renderAtrasados();
+  renderAlertStrip();
+  const labelGalpao = state.galpaoAtivo === 'todos' ? 'Total' : (state.galpaoAtivo === 'serra' ? 'Serra/ES' : 'Extrema/MG');
+  document.getElementById('totalPill').textContent = `${labelGalpao} · ${state.nfs.length.toLocaleString('pt-BR')} NFs`;
+}
+
+/* ============================================================
+   CÁLCULO DE ATRASADOS
+   ============================================================ */
+function calcularAtrasados() {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return state.nfs
+    .filter(n => n.statusExp === STATUS_AGUARDANDO && n.emissao instanceof Date && !isNaN(n.emissao))
+    .map(n => {
+      const emissao = new Date(n.emissao);
+      emissao.setHours(0, 0, 0, 0);
+      const diffMs = hoje - emissao;
+      const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      return {...n, diasAguardando: dias};
+    })
+    .filter(n => n.diasAguardando > DIAS_LIMITE_ATRASO);
+}
+
+/* ============================================================
+   ALERTA STRIP NO TOPO
+   ============================================================ */
+function renderAlertStrip() {
+  const atrasados = calcularAtrasados();
+  const strip = document.getElementById('alertStrip');
+  if (atrasados.length === 0) {
+    strip.classList.add('hidden');
+    return;
+  }
+  strip.classList.remove('hidden');
+  document.getElementById('alertCount').textContent = atrasados.length.toLocaleString('pt-BR');
+  const transpsAfetadas = new Set(atrasados.map(n => n.transp)).size;
+  const maisVelho = atrasados.reduce((m,n) => Math.max(m, n.diasAguardando), 0);
+  document.getElementById('alertSub').textContent =
+    `Aguardando há mais de ${DIAS_LIMITE_ATRASO} dias · ${transpsAfetadas} transportadoras afetadas · pedido mais antigo: ${maisVelho} dias`;
+}
+
+/* ============================================================
+   ABA ATRASADOS
+   ============================================================ */
+function renderAtrasados() {
+  const atrasados = calcularAtrasados();
+  const total = atrasados.length;
+
+  document.getElementById('atrasadosTotal').textContent = total.toLocaleString('pt-BR');
+  const hoje = new Date();
+  document.getElementById('atrasadosDataRef').textContent =
+    `Referência: ${hoje.toLocaleDateString('pt-BR')}`;
+
+  // KPIs por dias
+  const c3 = atrasados.filter(n => n.diasAguardando === 3).length;
+  const c4 = atrasados.filter(n => n.diasAguardando === 4).length;
+  const c5 = atrasados.filter(n => n.diasAguardando === 5).length;
+  const c6mais = atrasados.filter(n => n.diasAguardando >= 6).length;
+  document.getElementById('atras3').textContent = c3;
+  document.getElementById('atras4').textContent = c4;
+  document.getElementById('atras5').textContent = c5;
+  document.getElementById('atras6mais').textContent = c6mais;
+
+  // Ranking por transportadora (Top 10)
+  const porTransp = {};
+  atrasados.forEach(n => {
+    if (!porTransp[n.transp]) porTransp[n.transp] = {transp:n.transp, qtd:0, maxDias:0, volumes:0};
+    porTransp[n.transp].qtd++;
+    porTransp[n.transp].volumes += n.volumes;
+    if (n.diasAguardando > porTransp[n.transp].maxDias) porTransp[n.transp].maxDias = n.diasAguardando;
+  });
+  const sortedTransp = Object.values(porTransp).sort((a,b) => b.qtd - a.qtd);
+  const top = sortedTransp.slice(0,10);
+  const max = top[0]?.qtd || 1;
+
+  document.getElementById('rankingAtrasados').innerHTML = top.length ? top.map((x,i) => `
+    <div class="rank-item">
+      <div class="rank-pos" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);box-shadow:0 4px 10px rgba(220,38,38,.3);">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${x.transp}</div>
+        <div class="rank-meta">${x.volumes.toLocaleString('pt-BR')} volumes parados · pedido mais antigo: ${x.maxDias} dias</div>
+        <div class="rank-bar"><div class="rank-fill" style="width:${(x.qtd/max*100).toFixed(0)}%;background:linear-gradient(90deg,#7F1D1D,#DC2626);"></div></div>
+      </div>
+      <div class="rank-value" style="color:#DC2626;">${x.qtd.toLocaleString('pt-BR')}<small>NFs atrasadas</small></div>
+    </div>
+  `).join('') : '<div class="empty"><div class="empty-icon">✅</div>Nenhum pedido atrasado!</div>';
+
+  // Tabela
+  let dadosFiltrados = atrasados.slice().sort((a,b) => b.diasAguardando - a.diasAguardando);
+  if (state.busca.atrasados) {
+    const busca = state.busca.atrasados;
+    dadosFiltrados = dadosFiltrados.filter(d =>
+      d.transp.toLowerCase().includes(busca) ||
+      String(d.numero || '').toLowerCase().includes(busca)
+    );
+  }
+  const tbody = document.querySelector('#tableAtrasados tbody');
+  if (!dadosFiltrados.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty"><div class="empty-icon">✅</div>Nenhum pedido atrasado encontrado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = dadosFiltrados.map(d => {
+    const tagClass = d.diasAguardando >= 7 ? 'd7' : d.diasAguardando >= 6 ? 'd6' : d.diasAguardando >= 5 ? 'd5' : d.diasAguardando >= 4 ? 'd4' : 'd3';
+    const dataStr = d.emissao instanceof Date ? d.emissao.toLocaleDateString('pt-BR') : '—';
+    const destino = (d.cidade && d.uf) ? `${d.cidade} / ${d.uf}` : (d.uf || d.cidade || '—');
+    return `
+      <tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);">${d.numero || '—'}</td>
+        <td style="font-weight:600;color:var(--primary);">${d.transp}</td>
+        <td class="numeric" style="font-weight:600;">${dataStr}</td>
+        <td class="numeric"><span class="delay-tag ${tagClass}">${d.diasAguardando} dias</span></td>
+        <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
+        <td class="numeric">${d.cubagem.toFixed(3)}</td>
+        <td style="color:var(--ink-2);">${destino}</td>
+      </tr>`;
+  }).join('');
+}
+
+function exportarAtrasados() {
+  const atrasados = calcularAtrasados().sort((a,b) => b.diasAguardando - a.diasAguardando);
+  if (!atrasados.length) { alert('Nenhum pedido atrasado para exportar.'); return; }
+  const head = ['NF Numero','Transportadora','Emissao','Dias Aguardando','Volumes','Cubagem (m3)','Cidade','UF'];
+  const rows = atrasados.map(d => [
+    d.numero || '',
+    d.transp,
+    d.emissao instanceof Date ? d.emissao.toLocaleDateString('pt-BR') : '',
+    d.diasAguardando,
+    d.volumes,
+    d.cubagem.toFixed(4),
+    d.cidade || '',
+    d.uf || ''
+  ]);
+  const csv = [head, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  baixarCSV(csv, 'pedidos_atrasados');
+}
+
+/* ============================================================
+   ABA 1 - VOLUMETRIA GERAL (Q, separado por status)
+   ============================================================ */
+function renderVolGeral() {
+  const aguard = filtrarPorStatus(STATUS_AGUARDANDO);
+  const compl = filtrarPorStatus(STATUS_COMPLETA);
+  const volA = aguard.reduce((s,n) => s + n.volumes, 0);
+  const volC = compl.reduce((s,n) => s + n.volumes, 0);
+  const total = volA + volC;
+
+  document.getElementById('volGeralAguard').textContent = volA.toLocaleString('pt-BR');
+  document.getElementById('volGeralAguardNFs').textContent = `${aguard.length.toLocaleString('pt-BR')} NFs`;
+  document.getElementById('volGeralCompl').textContent = volC.toLocaleString('pt-BR');
+  document.getElementById('volGeralComplNFs').textContent = `${compl.length.toLocaleString('pt-BR')} NFs`;
+
+  document.getElementById('volGeralTotal').textContent = total.toLocaleString('pt-BR');
+  document.getElementById('volGeralPctAguard').textContent = total > 0 ? (volA/total*100).toFixed(1) + '%' : '0%';
+  document.getElementById('volGeralPctCompl').textContent = total > 0 ? (volC/total*100).toFixed(1) + '%' : '0%';
+
+  destroyChart('volGeral');
+  state.charts.volGeral = new Chart(document.getElementById('chartVolGeral'), {
+    type: 'bar',
+    data: {
+      labels: ['Aguardando Expedição', 'Expedição Completa'],
+      datasets: [{
+        label: 'Volumes',
+        data: [volA, volC],
+        backgroundColor: ['#F59E0B', '#10B981'],
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: chartOpts({plugins:{legend:{display:false}}})
+  });
+}
+
+/* ============================================================
+   ABA 2 - VOLUMETRIA POR TRANSPORTADORA (Q, só Aguardando)
+   ============================================================ */
+function renderVolTransp() {
+  const filtrados = filtrarPorStatus(STATUS_AGUARDANDO);
+  const grupos = agruparPorTransp(filtrados);
+  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
+  document.getElementById('volTranspTotal').textContent = total.toLocaleString('pt-BR');
+
+  const sorted = grupos.slice().sort((a,b) => b.volumes - a.volumes);
+  const top = sorted.slice(0,10);
+  const max = top[0]?.volumes || 1;
+
+  // Ranking visual
+  document.getElementById('rankingVolTransp').innerHTML = top.length ? top.map((x,i) => `
+    <div class="rank-item">
+      <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${x.transp}</div>
+        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.volumes/x.nfs:0).toFixed(1)} vol/NF · ${(total>0?x.volumes/total*100:0).toFixed(1)}% do total</div>
+        <div class="rank-bar"><div class="rank-fill" style="width:${(x.volumes/max*100).toFixed(0)}%"></div></div>
+      </div>
+      <div class="rank-value">${x.volumes.toLocaleString('pt-BR')}<small>volumes</small></div>
+    </div>
+  `).join('') : '<div class="empty">Sem dados.</div>';
+
+  // Tabela detalhada
+  let dadosFiltrados = sorted;
+  if (state.busca.volTransp) {
+    dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.volTransp));
+  }
+  const tbody = document.querySelector('#tableVolTransp tbody');
+  if (!dadosFiltrados.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty"><div class="empty-icon">📭</div>Nenhuma transportadora encontrada.</td></tr>';
+    return;
+  }
+  // Mapa de rank original
+  const rankMap = {};
+  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+
+  let html = dadosFiltrados.map(d => `
+    <tr>
+      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
+      <td style="font-weight:700;color:var(--primary);">${d.transp}</td>
+      <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${d.nfs.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${(d.nfs>0 ? d.volumes/d.nfs : 0).toFixed(2)}</td>
+      <td class="numeric">${total>0 ? (d.volumes/total*100).toFixed(2) : '0.00'}%</td>
+    </tr>
+  `).join('');
+  const totFiltrado = dadosFiltrados.reduce((s,d) => s + d.volumes, 0);
+  const nfsFiltrado = dadosFiltrados.reduce((s,d) => s + d.nfs, 0);
+  html += `
+    <tr class="total-row">
+      <td class="numeric">—</td>
+      <td>TOTAL</td>
+      <td class="numeric">${totFiltrado.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${nfsFiltrado.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${nfsFiltrado>0 ? (totFiltrado/nfsFiltrado).toFixed(2) : '0'}</td>
+      <td class="numeric">${total>0 ? (totFiltrado/total*100).toFixed(2) : '0.00'}%</td>
+    </tr>`;
+  tbody.innerHTML = html;
+}
+
+function exportarVolTransp() {
+  const filtrados = filtrarPorStatus(STATUS_AGUARDANDO);
+  const grupos = agruparPorTransp(filtrados).sort((a,b) => b.volumes - a.volumes);
+  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
+  if (!grupos.length) { alert('Nenhum dado para exportar.'); return; }
+  const head = ['Rank','Transportadora','Volumes','NFs','Média Vol/NF','% do Total'];
+  const rows = grupos.map((g,i) => [
+    i+1, g.transp, g.volumes, g.nfs,
+    (g.nfs>0 ? g.volumes/g.nfs : 0).toFixed(2),
+    total>0 ? (g.volumes/total*100).toFixed(2)+'%' : '0%'
+  ]);
+  const csv = [head, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  baixarCSV(csv, 'volumetria_por_transportadora_aguardando');
+}
+
+/* ============================================================
+   ABA 3 - CUBAGEM GERAL (S, separado por status)
+   ============================================================ */
+function renderCubGeral() {
+  const aguard = filtrarPorStatus(STATUS_AGUARDANDO);
+  const compl = filtrarPorStatus(STATUS_COMPLETA);
+  const cubA = aguard.reduce((s,n) => s + n.cubagem, 0);
+  const cubC = compl.reduce((s,n) => s + n.cubagem, 0);
+  const total = cubA + cubC;
+
+  document.getElementById('cubGeralAguard').textContent = cubA.toLocaleString('pt-BR',{maximumFractionDigits:2,minimumFractionDigits:2});
+  document.getElementById('cubGeralAguardNFs').textContent = `${aguard.length.toLocaleString('pt-BR')} NFs`;
+  document.getElementById('cubGeralCompl').textContent = cubC.toLocaleString('pt-BR',{maximumFractionDigits:2,minimumFractionDigits:2});
+  document.getElementById('cubGeralComplNFs').textContent = `${compl.length.toLocaleString('pt-BR')} NFs`;
+
+  document.getElementById('cubGeralTotal').textContent = total.toFixed(2);
+  document.getElementById('cubGeralPctAguard').textContent = total > 0 ? (cubA/total*100).toFixed(1) + '%' : '0%';
+  document.getElementById('cubGeralPctCompl').textContent = total > 0 ? (cubC/total*100).toFixed(1) + '%' : '0%';
+
+  destroyChart('cubGeral');
+  state.charts.cubGeral = new Chart(document.getElementById('chartCubGeral'), {
+    type: 'bar',
+    data: {
+      labels: ['Aguardando Expedição', 'Expedição Completa'],
+      datasets: [{
+        label: 'Cubagem (m³)',
+        data: [cubA, cubC],
+        backgroundColor: ['#A78BFA', '#7C3AED'],
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: chartOpts({
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y.toFixed(3)} m³`}}}
+    })
+  });
+}
+
+/* ============================================================
+   ABA 4 - CUBAGEM POR TRANSPORTADORA (S, só Aguardando)
+   ============================================================ */
+function renderCubTransp() {
+  const filtrados = filtrarPorStatus(STATUS_AGUARDANDO);
+  const grupos = agruparPorTransp(filtrados);
+  const total = filtrados.reduce((s,n) => s + n.cubagem, 0);
+  document.getElementById('cubTranspTotal').textContent = total.toLocaleString('pt-BR',{maximumFractionDigits:2,minimumFractionDigits:2});
+
+  const sorted = grupos.slice().sort((a,b) => b.cubagem - a.cubagem);
+  const top = sorted.slice(0,10);
+  const max = top[0]?.cubagem || 1;
+
+  document.getElementById('rankingCubTransp').innerHTML = top.length ? top.map((x,i) => `
+    <div class="rank-item">
+      <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${x.transp}</div>
+        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.cubagem/x.nfs:0).toFixed(3)} m³/NF · ${(total>0?x.cubagem/total*100:0).toFixed(1)}% do total</div>
+        <div class="rank-bar"><div class="rank-fill" style="width:${(x.cubagem/max*100).toFixed(0)}%;background:linear-gradient(90deg,#5B21B6,#A78BFA);"></div></div>
+      </div>
+      <div class="rank-value">${x.cubagem.toFixed(2)}<small>m³ totais</small></div>
+    </div>
+  `).join('') : '<div class="empty">Sem dados.</div>';
+
+  let dadosFiltrados = sorted;
+  if (state.busca.cubTransp) {
+    dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.cubTransp));
+  }
+  const tbody = document.querySelector('#tableCubTransp tbody');
+  if (!dadosFiltrados.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty"><div class="empty-icon">📭</div>Nenhuma transportadora encontrada.</td></tr>';
+    return;
+  }
+  const rankMap = {};
+  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+
+  let html = dadosFiltrados.map(d => `
+    <tr>
+      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
+      <td style="font-weight:700;color:var(--purple);">${d.transp}</td>
+      <td class="numeric">${d.cubagem.toFixed(4)}</td>
+      <td class="numeric">${d.nfs.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${(d.nfs>0 ? d.cubagem/d.nfs : 0).toFixed(4)}</td>
+      <td class="numeric">${total>0 ? (d.cubagem/total*100).toFixed(2) : '0.00'}%</td>
+    </tr>
+  `).join('');
+  const totFiltrado = dadosFiltrados.reduce((s,d) => s + d.cubagem, 0);
+  const nfsFiltrado = dadosFiltrados.reduce((s,d) => s + d.nfs, 0);
+  html += `
+    <tr class="total-row">
+      <td class="numeric">—</td>
+      <td>TOTAL</td>
+      <td class="numeric">${totFiltrado.toFixed(4)}</td>
+      <td class="numeric">${nfsFiltrado.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${nfsFiltrado>0 ? (totFiltrado/nfsFiltrado).toFixed(4) : '0'}</td>
+      <td class="numeric">${total>0 ? (totFiltrado/total*100).toFixed(2) : '0.00'}%</td>
+    </tr>`;
+  tbody.innerHTML = html;
+}
+
+function exportarCubTransp() {
+  const filtrados = filtrarPorStatus(STATUS_AGUARDANDO);
+  const grupos = agruparPorTransp(filtrados).sort((a,b) => b.cubagem - a.cubagem);
+  const total = filtrados.reduce((s,n) => s + n.cubagem, 0);
+  if (!grupos.length) { alert('Nenhum dado para exportar.'); return; }
+  const head = ['Rank','Transportadora','Cubagem (m³)','NFs','Média m³/NF','% do Total'];
+  const rows = grupos.map((g,i) => [
+    i+1, g.transp, g.cubagem.toFixed(4), g.nfs,
+    (g.nfs>0 ? g.cubagem/g.nfs : 0).toFixed(4),
+    total>0 ? (g.cubagem/total*100).toFixed(2)+'%' : '0%'
+  ]);
+  const csv = [head, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  baixarCSV(csv, 'cubagem_por_transportadora_aguardando');
+}
+
+/* ============================================================
+   ABA 5 - VOLUME TOTAL CARREGADO (Q, só Expedição Completa)
+   ============================================================ */
+function renderVolCarregado() {
+  const filtrados = filtrarPorStatus(STATUS_COMPLETA);
+  const grupos = agruparPorTransp(filtrados);
+  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
+  document.getElementById('volCarregadoTotal').textContent = total.toLocaleString('pt-BR');
+
+  const sorted = grupos.slice().sort((a,b) => b.volumes - a.volumes);
+  const top = sorted.slice(0,10);
+  const max = top[0]?.volumes || 1;
+
+  document.getElementById('rankingVolCarregado').innerHTML = top.length ? top.map((x,i) => `
+    <div class="rank-item">
+      <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${x.transp}</div>
+        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.volumes/x.nfs:0).toFixed(1)} vol/NF · ${(total>0?x.volumes/total*100:0).toFixed(1)}% do total</div>
+        <div class="rank-bar"><div class="rank-fill" style="width:${(x.volumes/max*100).toFixed(0)}%;background:linear-gradient(90deg,#065F46,#10B981);"></div></div>
+      </div>
+      <div class="rank-value">${x.volumes.toLocaleString('pt-BR')}<small>volumes</small></div>
+    </div>
+  `).join('') : '<div class="empty">Sem dados.</div>';
+
+  let dadosFiltrados = sorted;
+  if (state.busca.volCarregado) {
+    dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.volCarregado));
+  }
+  const tbody = document.querySelector('#tableVolCarregado tbody');
+  if (!dadosFiltrados.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty"><div class="empty-icon">📭</div>Nenhuma transportadora encontrada.</td></tr>';
+    return;
+  }
+  const rankMap = {};
+  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+
+  let html = dadosFiltrados.map(d => `
+    <tr>
+      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
+      <td style="font-weight:700;color:var(--ok);">${d.transp}</td>
+      <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${d.nfs.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${(d.nfs>0 ? d.volumes/d.nfs : 0).toFixed(2)}</td>
+      <td class="numeric">${total>0 ? (d.volumes/total*100).toFixed(2) : '0.00'}%</td>
+    </tr>
+  `).join('');
+  const totFiltrado = dadosFiltrados.reduce((s,d) => s + d.volumes, 0);
+  const nfsFiltrado = dadosFiltrados.reduce((s,d) => s + d.nfs, 0);
+  html += `
+    <tr class="total-row">
+      <td class="numeric">—</td>
+      <td>TOTAL</td>
+      <td class="numeric">${totFiltrado.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${nfsFiltrado.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${nfsFiltrado>0 ? (totFiltrado/nfsFiltrado).toFixed(2) : '0'}</td>
+      <td class="numeric">${total>0 ? (totFiltrado/total*100).toFixed(2) : '0.00'}%</td>
+    </tr>`;
+  tbody.innerHTML = html;
+}
+
+function exportarVolCarregado() {
+  const filtrados = filtrarPorStatus(STATUS_COMPLETA);
+  const grupos = agruparPorTransp(filtrados).sort((a,b) => b.volumes - a.volumes);
+  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
+  if (!grupos.length) { alert('Nenhum dado para exportar.'); return; }
+  const head = ['Rank','Transportadora','Volumes Carregados','NFs','Média Vol/NF','% do Total'];
+  const rows = grupos.map((g,i) => [
+    i+1, g.transp, g.volumes, g.nfs,
+    (g.nfs>0 ? g.volumes/g.nfs : 0).toFixed(2),
+    total>0 ? (g.volumes/total*100).toFixed(2)+'%' : '0%'
+  ]);
+  const csv = [head, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  baixarCSV(csv, 'volume_carregado_por_transportadora');
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function destroyChart(name) {
+  if (state.charts[name]) { state.charts[name].destroy(); state.charts[name] = null; }
+}
+
+function chartOpts(extra={}) {
+  return Object.assign({
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend:{labels:{font:{family:'Inter',size:12,weight:'600'},color:'#475569'}},
+      tooltip:{
+        backgroundColor:'#0F172A', padding:12, cornerRadius:8,
+        titleFont:{family:'Plus Jakarta Sans',weight:'700',size:13},
+        bodyFont:{family:'Inter',size:12},
+        boxPadding:6
+      }
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#475569',font:{family:'Inter',size:11}}},
+      y:{grid:{color:'#E2E8F0',drawBorder:false},ticks:{color:'#475569',font:{family:'Inter',size:11}},beginAtZero:true}
+    }
+  }, extra);
+}
+
+function baixarCSV(csv, nome) {
+  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${nome}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   UPLOAD (1 arquivo com abas Serra e Extrema)
+   ============================================================ */
+function setupUpload() {
+  const area = document.getElementById('uploadArea');
+  const input = document.getElementById('fileInput');
+  if (!area || !input) return;
+  area.addEventListener('click', e => {
+    // Evita duplo trigger quando clica no botão dentro da área
+    if (e.target.tagName !== 'BUTTON') input.click();
+  });
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag'));
+  area.addEventListener('drop', e => {
+    e.preventDefault(); area.classList.remove('drag');
+    if (e.dataTransfer.files.length) processarArquivo(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e => {
+    if (e.target.files.length) processarArquivo(e.target.files[0]);
+  });
+}
+
+function capitalizar(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// Identifica qual galpão uma aba do Excel representa, baseado no nome
+function identificarGalpao(nomeAba) {
+  const n = String(nomeAba || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if (n.includes('serra')) return 'serra';
+  if (n.includes('extrema')) return 'extrema';
+  return null;
+}
+
+function processarArquivo(file) {
+  mostrarBanner('uploadStatus','info','⏳ Processando arquivo...');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true});
+
+      // Identifica abas: procura "Serra" e "Extrema" pelo nome
+      const abasGalpao = {};
+      for (const nome of wb.SheetNames) {
+        const g = identificarGalpao(nome);
+        if (g) abasGalpao[g] = nome;
+      }
+
+      // Se não achou nenhuma das duas abas conhecidas, tenta usar a primeira aba como Serra
+      // (compatibilidade retroativa com planilhas antigas de aba única)
+      if (!abasGalpao.serra && !abasGalpao.extrema) {
+        if (wb.SheetNames.length === 1) {
+          abasGalpao.serra = wb.SheetNames[0];
+          mostrarBanner('uploadStatus','info',
+            `ℹ️ Aba única detectada ("${wb.SheetNames[0]}") — interpretando como Serra/ES. Para suportar múltiplos galpões, nomeie as abas como "Serra" e "Extrema".`);
+        } else {
+          throw new Error(`Não encontrei abas chamadas "Serra" ou "Extrema" no arquivo. Abas encontradas: ${wb.SheetNames.join(', ')}.`);
+        }
+      }
+
+      // Processa cada aba encontrada
+      const resumo = {};
+      for (const [galpao, nomeAba] of Object.entries(abasGalpao)) {
+        const ws = wb.Sheets[nomeAba];
+        const arr = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
+        if (arr.length < 2) {
+          resumo[galpao] = { erro: `Aba "${nomeAba}" vazia ou sem cabeçalho.` };
+          continue;
+        }
+
+        const headers = arr[0].map(h => normHeader(h));
+        const idx = {};
+        for (const [campo, candidatos] of Object.entries(HEADERS_MAP)) {
+          for (const c of candidatos) {
+            const i = headers.findIndex(h => h === c || h.replace(/_/g,'') === c.replace(/_/g,''));
+            if (i >= 0) { idx[campo] = i; break; }
+          }
+        }
+
+        if (idx.transp === undefined || idx.statusExp === undefined) {
+          resumo[galpao] = { erro: `Aba "${nomeAba}": colunas obrigatórias não encontradas.` };
+          continue;
+        }
+
+        const novo = [];
+        for (let r = 1; r < arr.length; r++) {
+          const row = arr[r];
+          const transpRaw = String(row[idx.transp] || '').trim();
+          if (!transpRaw) continue;
+          const statusBruto = String(row[idx.statusExp] || '').trim();
+          novo.push({
+            galpao: galpao,
+            transp: aglutinarTransp(transpRaw),
+            volumes: idx.volumes !== undefined ? parseNum(row[idx.volumes]) : 0,
+            cubagem: idx.cubagem !== undefined ? parseNum(row[idx.cubagem]) : 0,
+            statusExp: normalizarStatus(statusBruto),
+            emissao: idx.emissao !== undefined ? parseData(row[idx.emissao]) : null,
+            numero: idx.numero !== undefined ? String(row[idx.numero] || '').trim() : '',
+            cidade: idx.cidade !== undefined ? String(row[idx.cidade] || '').trim() : '',
+            uf: idx.uf !== undefined ? String(row[idx.uf] || '').toUpperCase().trim() : ''
+          });
+        }
+
+        state.dados[galpao] = novo;
+        const nA = novo.filter(n => n.statusExp === STATUS_AGUARDANDO).length;
+        const nC = novo.filter(n => n.statusExp === STATUS_COMPLETA).length;
+        resumo[galpao] = { nfs: novo.length, aguardando: nA, completa: nC, abaNome: nomeAba };
+      }
+
+      const galpoesOk = Object.entries(resumo).filter(([_,r]) => !r.erro).map(([g])=>g);
+      if (!galpoesOk.length) throw new Error('Nenhuma aba pôde ser processada.');
+
+      // Define qual galpão exibir: prioriza Serra se disponível
+      if (galpoesOk.includes('serra')) state.galpaoAtivo = 'serra';
+      else if (galpoesOk.includes('extrema')) state.galpaoAtivo = 'extrema';
+
+      // Atualiza UI
+      atualizarSeletorGalpao();
+      atualizarStatusGalpoes(resumo);
+      renderTudo();
+
+      // Mensagem de sucesso consolidada
+      const partes = galpoesOk.map(g => {
+        const r = resumo[g];
+        const label = g === 'serra' ? 'Serra' : 'Extrema';
+        return `<strong>${label}</strong>: ${r.nfs.toLocaleString('pt-BR')} NFs (${r.aguardando.toLocaleString('pt-BR')} aguard. + ${r.completa.toLocaleString('pt-BR')} compl.)`;
+      });
+      const erros = Object.entries(resumo).filter(([_,r]) => r.erro);
+      let msg = `✓ ${partes.join(' &nbsp;·&nbsp; ')}`;
+      if (erros.length) {
+        msg += `<br>⚠ ${erros.map(([g,r])=>r.erro).join(' / ')}`;
+      }
+      mostrarBanner('uploadStatus','ok', msg);
+
+      setTimeout(() => document.querySelector('[data-tab="volgeral"]').click(), 1500);
+    } catch (err) {
+      mostrarBanner('uploadStatus','warn',`⚠ Erro: ${err.message}`);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function atualizarStatusGalpoes(resumo) {
+  const grid = document.getElementById('galpoesStatusGrid');
+  if (!grid) return;
+  grid.style.display = 'grid';
+  ['serra','extrema'].forEach(g => {
+    const cap = capitalizar(g);
+    const statusEl = document.getElementById('status' + cap);
+    const iconEl = document.getElementById('icon' + cap);
+    if (!statusEl || !iconEl) return;
+    const r = resumo[g];
+    if (r && !r.erro) {
+      statusEl.innerHTML = `<strong style="color:var(--ok);">${r.nfs.toLocaleString('pt-BR')} NFs importadas</strong> · ${r.aguardando} aguardando, ${r.completa} completas`;
+      iconEl.textContent = '✅';
+    } else if (r && r.erro) {
+      statusEl.innerHTML = `<span style="color:var(--danger);">${r.erro}</span>`;
+      iconEl.textContent = '❌';
+    } else {
+      statusEl.textContent = 'Aba não encontrada no arquivo';
+      iconEl.textContent = '⚪';
+    }
+  });
+}
+
+function outroGalpao(g) { return g === 'serra' ? 'extrema' : 'serra'; }
+
+function normalizarStatus(s) {
+  if (!s) return '';
+  return String(s).toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function normHeader(h) {
+  return String(h || '').trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9_]/g,'_').replace(/_{2,}/g,'_').replace(/^_|_$/g,'');
+}
+
+function parseNum(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  if (typeof v === 'number') return v;
+  const s = String(v).replace(/[^\d.,-]/g,'').replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseData(v) {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  // Excel serial number (dias desde 1899-12-30)
+  if (typeof v === 'number' && v > 30000 && v < 80000) {
+    const dt = new Date(Date.UTC(1899, 11, 30) + v * 86400000);
+    return isNaN(dt) ? null : dt;
+  }
+  const s = String(v).trim();
+  let m;
+
+  // ISO yyyy-mm-dd → sem ambiguidade
+  if ((m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/))) {
+    const dt = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+    return isNaN(dt) ? null : dt;
+  }
+
+  // Formatos com 3 partes separadas por / ou -
+  // IMPORTANTE: a biblioteca XLSX devolve datas no formato AMERICANO M/D/YY (ex: "5/1/26" = 1º de maio).
+  // Já planilhas brasileiras costumam usar DD/MM/YYYY.
+  // Heurística para detectar formato:
+  //   - se ano tem 4 dígitos (DD/MM/YYYY) → tratamos como BR
+  //   - se ano tem 2 dígitos (M/D/YY) → tratamos como US (formato do XLSX em locale en)
+  //   - se a primeira parte > 12 → certeza que é DD/MM (BR)
+  //   - se a segunda parte > 12 → certeza que é MM/DD (US)
+  if ((m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/))) {
+    const a = parseInt(m[1]), b = parseInt(m[2]);
+    const yr = m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3]);
+    let dia, mes;
+    if (a > 12) {
+      // a só pode ser dia → BR
+      dia = a; mes = b;
+    } else if (b > 12) {
+      // b só pode ser dia → US
+      dia = b; mes = a;
+    } else if (m[3].length === 2) {
+      // ano com 2 dígitos → XLSX salva em formato US (M/D/YY)
+      dia = b; mes = a;
+    } else {
+      // ano com 4 dígitos → assume BR (DD/MM/YYYY)
+      dia = a; mes = b;
+    }
+    const dt = new Date(yr, mes-1, dia);
+    return isNaN(dt) ? null : dt;
+  }
+
+  const dt = new Date(s);
+  return isNaN(dt) ? null : dt;
+}
+
+function mostrarBanner(targetId, tipo, msg) {
+  const cls = tipo === 'ok' ? 'banner-ok' : tipo === 'warn' ? 'banner-warn' : 'banner-info';
+  document.getElementById(targetId).innerHTML = `<div class="banner ${cls}">${msg}</div>`;
+}
+</script>
+</body>
+</html>
