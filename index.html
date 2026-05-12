@@ -176,6 +176,42 @@
   .delay-tag.d6{background:#FCA5A5;color:#7F1D1D;border:1px solid #DC2626}
   .delay-tag.d7{background:#DC2626;color:#fff}
 
+  /* Modal de detalhamento por transportadora */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:1000;padding:24px;animation:fadeIn .15s ease}
+  .modal-overlay.show{display:flex}
+  .modal{background:#fff;border-radius:var(--radius);width:min(960px,100%);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 25px 50px -12px rgba(0,0,0,.35);animation:modalIn .2s ease;overflow:hidden}
+  @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-header{padding:22px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}
+  .modal-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:19px;color:var(--ink);letter-spacing:-.015em;line-height:1.2}
+  .modal-subtitle{font-size:12.5px;color:var(--ink-2);margin-top:4px;font-weight:500}
+  .modal-close{width:34px;height:34px;border-radius:9px;background:#F1F5F9;border:none;color:var(--ink-2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+  .modal-close:hover{background:#E2E8F0;color:var(--ink)}
+  .modal-body{padding:20px 26px;overflow-y:auto;flex:1}
+  .modal-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+  .modal-kpi{padding:14px 16px;background:#F8FAFC;border:1px solid var(--border);border-radius:var(--radius-sm)}
+  .modal-kpi-label{font-size:10.5px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px}
+  .modal-kpi-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1.1}
+  .modal-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+  .modal-table-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:auto;max-height:380px}
+  .modal-table-wrap table thead th{background:#F8FAFC;font-size:11px;padding:9px 11px;position:sticky;top:0;z-index:1}
+  .modal-table-wrap table tbody td{padding:9px 11px;font-size:12.5px}
+  .modal-footer{padding:14px 26px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#F8FAFC;flex-shrink:0}
+  body.modal-open{overflow:hidden}
+
+  /* Indicador visual de "clicável" no ranking e tabela */
+  .rank-item.clickable, .clickable-row{cursor:pointer;transition:all .15s}
+  .rank-item.clickable:hover{transform:translateX(4px);box-shadow:0 4px 12px rgba(30,58,138,.12);border-color:var(--primary-2)}
+  .clickable-row:hover{background:#EFF6FF !important}
+  .click-hint{font-size:10.5px;color:var(--muted);font-weight:500;margin-top:4px;font-style:italic}
+
+  @media (max-width:720px){
+    .modal{max-height:96vh;border-radius:var(--radius) var(--radius) 0 0;align-self:flex-end}
+    .modal-overlay{align-items:flex-end;padding:0}
+    .modal-header,.modal-body,.modal-footer{padding-left:18px;padding-right:18px}
+    .modal-title{font-size:16px}
+    .modal-kpi-value{font-size:18px}
+  }
+
   @media (max-width:720px){
     header{padding:18px 18px;flex-direction:column;align-items:flex-start}
     .container{padding:18px}
@@ -326,7 +362,7 @@
     </div>
 
     <div class="panel">
-      <h2><span class="h2-icon">🏆</span>Ranking de Volumes</h2>
+      <h2><span class="h2-icon">🏆</span>Ranking de Volumes<span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:auto;letter-spacing:0;text-transform:none;">💡 Clique numa transportadora para ver as NFs</span></h2>
       <div class="ranking" id="rankingVolTransp"></div>
     </div>
 
@@ -399,7 +435,7 @@
     </div>
 
     <div class="panel">
-      <h2><span class="h2-icon">🏆</span>Ranking de Cubagem</h2>
+      <h2><span class="h2-icon">🏆</span>Ranking de Cubagem<span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:auto;letter-spacing:0;text-transform:none;">💡 Clique numa transportadora para ver as NFs</span></h2>
       <div class="ranking" id="rankingCubTransp"></div>
     </div>
 
@@ -443,7 +479,7 @@
     </div>
 
     <div class="panel">
-      <h2><span class="h2-icon">🏆</span>Ranking de Volume Carregado</h2>
+      <h2><span class="h2-icon">🏆</span>Ranking de Volume Carregado<span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:auto;letter-spacing:0;text-transform:none;">💡 Clique numa transportadora para ver as NFs</span></h2>
       <div class="ranking" id="rankingVolCarregado"></div>
     </div>
 
@@ -495,7 +531,7 @@
     </div>
 
     <div class="panel">
-      <h2><span class="h2-icon" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);">⚠️</span>Atrasados por Transportadora</h2>
+      <h2><span class="h2-icon" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);">⚠️</span>Atrasados por Transportadora<span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:auto;letter-spacing:0;text-transform:none;">💡 Clique para ver as NFs atrasadas</span></h2>
       <div class="ranking" id="rankingAtrasados"></div>
     </div>
 
@@ -801,7 +837,7 @@ function renderAtrasados() {
   const max = top[0]?.qtd || 1;
 
   document.getElementById('rankingAtrasados').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'atrasados')" title="Ver atrasados desta transportadora">
       <div class="rank-pos" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);box-shadow:0 4px 10px rgba(220,38,38,.3);">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -913,7 +949,7 @@ function renderVolTransp() {
 
   // Ranking visual
   document.getElementById('rankingVolTransp').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -939,7 +975,7 @@ function renderVolTransp() {
   sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
-    <tr>
+    <tr class="clickable-row" onclick="abrirModalTransp(${JSON.stringify(d.transp)}, 'aguardando')" title="Ver pedidos">
       <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
       <td style="font-weight:700;color:var(--primary);">${d.transp}</td>
       <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
@@ -1029,7 +1065,7 @@ function renderCubTransp() {
   const max = top[0]?.cubagem || 1;
 
   document.getElementById('rankingCubTransp').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -1053,7 +1089,7 @@ function renderCubTransp() {
   sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
-    <tr>
+    <tr class="clickable-row" onclick="abrirModalTransp(${JSON.stringify(d.transp)}, 'aguardando')" title="Ver pedidos">
       <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
       <td style="font-weight:700;color:var(--purple);">${d.transp}</td>
       <td class="numeric">${d.cubagem.toFixed(4)}</td>
@@ -1105,7 +1141,7 @@ function renderVolCarregado() {
   const max = top[0]?.volumes || 1;
 
   document.getElementById('rankingVolCarregado').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'completa')" title="Ver pedidos expedidos">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -1129,7 +1165,7 @@ function renderVolCarregado() {
   sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
-    <tr>
+    <tr class="clickable-row" onclick="abrirModalTransp(${JSON.stringify(d.transp)}, 'completa')" title="Ver pedidos expedidos">
       <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
       <td style="font-weight:700;color:var(--ok);">${d.transp}</td>
       <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
@@ -1418,6 +1454,244 @@ function mostrarBanner(targetId, tipo, msg) {
   const cls = tipo === 'ok' ? 'banner-ok' : tipo === 'warn' ? 'banner-warn' : 'banner-info';
   document.getElementById(targetId).innerHTML = `<div class="banner ${cls}">${msg}</div>`;
 }
+
+/* ============================================================
+   MODAL DE DETALHAMENTO POR TRANSPORTADORA
+   ============================================================ */
+const modalState = { transp:null, contexto:null, busca:'' };
+
+function abrirModalTransp(transp, contexto) {
+  // contexto: 'aguardando' | 'completa' | 'atrasados'
+  modalState.transp = transp;
+  modalState.contexto = contexto;
+  modalState.busca = '';
+  document.body.classList.add('modal-open');
+  document.getElementById('modalOverlay').classList.add('show');
+  renderModal();
+}
+
+function fecharModal() {
+  document.body.classList.remove('modal-open');
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function getNFsModal() {
+  let nfs = state.nfs.filter(n => n.transp === modalState.transp);
+  if (modalState.contexto === 'aguardando') {
+    nfs = nfs.filter(n => n.statusExp === STATUS_AGUARDANDO);
+  } else if (modalState.contexto === 'completa') {
+    nfs = nfs.filter(n => n.statusExp === STATUS_COMPLETA);
+  } else if (modalState.contexto === 'atrasados') {
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    nfs = nfs.filter(n => {
+      if (n.statusExp !== STATUS_AGUARDANDO) return false;
+      if (!(n.emissao instanceof Date) || isNaN(n.emissao)) return false;
+      const em = new Date(n.emissao); em.setHours(0,0,0,0);
+      const dias = Math.floor((hoje - em) / 86400000);
+      return dias > DIAS_LIMITE_ATRASO;
+    }).map(n => {
+      const em = new Date(n.emissao); em.setHours(0,0,0,0);
+      const dias = Math.floor((hoje - em) / 86400000);
+      return {...n, diasAguardando: dias};
+    });
+  }
+  return nfs;
+}
+
+function renderModal() {
+  const transp = modalState.transp;
+  const ctx = modalState.contexto;
+  const nfs = getNFsModal();
+
+  // Contexto: label e ícone
+  const ctxConfig = {
+    aguardando: { label:'Aguardando Expedição', icon:'⏳', color:'#D97706' },
+    completa:   { label:'Expedição Completa',   icon:'✅', color:'#059669' },
+    atrasados:  { label:'Pedidos Atrasados',    icon:'⚠️', color:'#DC2626' }
+  };
+  const cfg = ctxConfig[ctx] || ctxConfig.aguardando;
+
+  // Header
+  document.getElementById('modalTitle').innerHTML = `${cfg.icon} ${transp}`;
+  const galpaoLabel = state.galpaoAtivo === 'todos' ? 'Total' : (state.galpaoAtivo === 'serra' ? 'Serra/ES' : 'Extrema/MG');
+  document.getElementById('modalSubtitle').textContent =
+    `${cfg.label} · ${galpaoLabel} · ${nfs.length.toLocaleString('pt-BR')} ${nfs.length === 1 ? 'NF' : 'NFs'}`;
+
+  // KPIs
+  const totalVol = nfs.reduce((s,n) => s + n.volumes, 0);
+  const totalCub = nfs.reduce((s,n) => s + n.cubagem, 0);
+  const mediaVol = nfs.length > 0 ? totalVol/nfs.length : 0;
+  const mediaCub = nfs.length > 0 ? totalCub/nfs.length : 0;
+
+  let kpiHtml = `
+    <div class="modal-kpi"><div class="modal-kpi-label">NFs</div><div class="modal-kpi-value">${nfs.length.toLocaleString('pt-BR')}</div></div>
+    <div class="modal-kpi"><div class="modal-kpi-label">Volumes</div><div class="modal-kpi-value">${totalVol.toLocaleString('pt-BR')}</div></div>
+    <div class="modal-kpi"><div class="modal-kpi-label">Cubagem (m³)</div><div class="modal-kpi-value">${totalCub.toFixed(2)}</div></div>
+    <div class="modal-kpi"><div class="modal-kpi-label">Média Vol/NF</div><div class="modal-kpi-value">${mediaVol.toFixed(1)}</div></div>`;
+  if (ctx === 'atrasados') {
+    const maxDias = nfs.reduce((m,n) => Math.max(m, n.diasAguardando || 0), 0);
+    kpiHtml += `<div class="modal-kpi" style="background:#FEF2F2;border-color:#FECACA;"><div class="modal-kpi-label" style="color:#991B1B;">Pedido + Antigo</div><div class="modal-kpi-value" style="color:#DC2626;">${maxDias} dias</div></div>`;
+  }
+  document.getElementById('modalKpis').innerHTML = kpiHtml;
+
+  // Filtra pela busca
+  let dados = nfs.slice();
+  if (modalState.busca) {
+    const b = modalState.busca.toLowerCase();
+    dados = dados.filter(n =>
+      String(n.numero || '').toLowerCase().includes(b) ||
+      String(n.cidade || '').toLowerCase().includes(b) ||
+      String(n.uf || '').toLowerCase().includes(b)
+    );
+  }
+
+  // Ordena: atrasados por dias desc; outros por data emissão desc (mais recente primeiro)
+  if (ctx === 'atrasados') {
+    dados.sort((a,b) => (b.diasAguardando || 0) - (a.diasAguardando || 0));
+  } else {
+    dados.sort((a,b) => {
+      const da = a.emissao instanceof Date ? a.emissao.getTime() : 0;
+      const db = b.emissao instanceof Date ? b.emissao.getTime() : 0;
+      return db - da;
+    });
+  }
+
+  // Render da tabela
+  const tbody = document.getElementById('modalTbody');
+  if (!dados.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty" style="padding:40px 20px;">
+      <div class="empty-icon">📭</div>Nenhuma NF encontrada${modalState.busca ? ' com esse filtro' : ''}.</td></tr>`;
+    return;
+  }
+
+  // Mostrar ou não a coluna "Dias" (só faz sentido pra atrasados ou aguardando)
+  const mostrarDias = ctx === 'atrasados' || ctx === 'aguardando';
+
+  tbody.innerHTML = dados.map(n => {
+    const dataStr = n.emissao instanceof Date ? n.emissao.toLocaleDateString('pt-BR') : '—';
+    const destino = (n.cidade && n.uf) ? `${n.cidade}/${n.uf}` : (n.uf || n.cidade || '—');
+    const galpaoLabel = n.galpao === 'serra' ? 'Serra' : (n.galpao === 'extrema' ? 'Extrema' : '—');
+
+    let diasCol = '';
+    if (mostrarDias) {
+      // calcula dias aguardando (caso seja aguardando, mostra mesmo se ≤ limite)
+      let dias = n.diasAguardando;
+      if (dias === undefined && n.emissao instanceof Date) {
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const em = new Date(n.emissao); em.setHours(0,0,0,0);
+        dias = Math.floor((hoje - em) / 86400000);
+      }
+      if (dias === undefined || dias === null || isNaN(dias)) {
+        diasCol = `<td class="numeric" style="color:var(--muted);">—</td>`;
+      } else if (dias > DIAS_LIMITE_ATRASO) {
+        const tagClass = dias >= 7 ? 'd7' : dias >= 6 ? 'd6' : dias >= 5 ? 'd5' : dias >= 4 ? 'd4' : 'd3';
+        diasCol = `<td class="numeric"><span class="delay-tag ${tagClass}">${dias} d</span></td>`;
+      } else {
+        diasCol = `<td class="numeric" style="color:var(--ink-2);">${dias} d</td>`;
+      }
+    }
+
+    return `<tr>
+      <td style="font-family:'Menlo','Consolas',monospace;font-weight:700;">${n.numero || '—'}</td>
+      <td style="font-size:11.5px;color:var(--ink-2);">${galpaoLabel}</td>
+      <td class="numeric" style="font-weight:600;">${dataStr}</td>
+      ${mostrarDias ? diasCol : ''}
+      <td class="numeric">${n.volumes.toLocaleString('pt-BR')}</td>
+      <td class="numeric">${n.cubagem.toFixed(3)}</td>
+      <td style="color:var(--ink-2);">${destino}</td>
+    </tr>`;
+  }).join('');
+
+  // Cabeçalho da tabela (com ou sem coluna de dias)
+  const theadHtml = `
+    <tr>
+      <th>NF Número</th>
+      <th>Galpão</th>
+      <th class="numeric">Emissão</th>
+      ${mostrarDias ? '<th class="numeric">Dias</th>' : ''}
+      <th class="numeric">Volumes</th>
+      <th class="numeric">Cubagem (m³)</th>
+      <th>Destino</th>
+    </tr>`;
+  document.getElementById('modalThead').innerHTML = theadHtml;
+
+  // Atualiza contador de filtro
+  const filtroInfo = document.getElementById('modalFiltroInfo');
+  if (modalState.busca) {
+    filtroInfo.innerHTML = `Exibindo <strong>${dados.length.toLocaleString('pt-BR')}</strong> de ${nfs.length.toLocaleString('pt-BR')} NFs`;
+  } else {
+    filtroInfo.innerHTML = '';
+  }
+}
+
+function exportarModalCSV() {
+  const nfs = getNFsModal();
+  if (!nfs.length) { alert('Nenhuma NF para exportar.'); return; }
+  const ctx = modalState.contexto;
+  const mostrarDias = ctx === 'atrasados' || ctx === 'aguardando';
+  const head = ['NF Numero','Galpao','Emissao'];
+  if (mostrarDias) head.push('Dias Aguardando');
+  head.push('Volumes','Cubagem (m3)','Cidade','UF');
+
+  const rows = nfs.map(n => {
+    let dias = n.diasAguardando;
+    if (dias === undefined && n.emissao instanceof Date) {
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const em = new Date(n.emissao); em.setHours(0,0,0,0);
+      dias = Math.floor((hoje - em) / 86400000);
+    }
+    const r = [
+      n.numero || '',
+      n.galpao === 'serra' ? 'Serra' : (n.galpao === 'extrema' ? 'Extrema' : ''),
+      n.emissao instanceof Date ? n.emissao.toLocaleDateString('pt-BR') : ''
+    ];
+    if (mostrarDias) r.push(dias != null && !isNaN(dias) ? dias : '');
+    r.push(n.volumes, n.cubagem.toFixed(4), n.cidade || '', n.uf || '');
+    return r;
+  });
+  const csv = [head, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const transpSafe = modalState.transp.replace(/[^\w-]/g,'_').toLowerCase();
+  baixarCSV(csv, `nfs_${transpSafe}_${modalState.contexto}`);
+}
+
+// Atalho de teclado: ESC fecha
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('modalOverlay').classList.contains('show')) {
+    fecharModal();
+  }
+});
 </script>
+
+<!-- Modal de detalhamento por transportadora -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) fecharModal();">
+  <div class="modal" role="dialog" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div style="min-width:0;flex:1;">
+        <div class="modal-title" id="modalTitle">—</div>
+        <div class="modal-subtitle" id="modalSubtitle">—</div>
+      </div>
+      <button class="modal-close" onclick="fecharModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-kpi-grid" id="modalKpis"></div>
+      <div class="modal-toolbar">
+        <input type="text" class="input" id="modalSearch" placeholder="🔍 Buscar por NF, cidade ou UF..." style="flex:1;min-width:240px;"
+               oninput="modalState.busca=this.value; renderModal();" />
+        <span style="font-size:12px;color:var(--ink-2);" id="modalFiltroInfo"></span>
+      </div>
+      <div class="modal-table-wrap">
+        <table>
+          <thead id="modalThead"></thead>
+          <tbody id="modalTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="exportarModalCSV()">⬇ Exportar CSV</button>
+      <button class="btn btn-primary" onclick="fecharModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
