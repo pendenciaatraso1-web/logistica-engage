@@ -579,7 +579,7 @@
    ============================================================ */
 const state = {
   dados: { serra: [], extrema: [] },     // NFs separadas por galpão
-  galpaoAtivo: 'serra',                  // 'serra' | 'extrema' | 'todos'
+  galpaoAtivo: 'todos',                  // 'serra' | 'extrema' | 'todos'
   charts: {},
   busca: {volTransp:'', cubTransp:'', volCarregado:'', atrasados:''},
   // Filtros UF/Cidade por aba (independentes)
@@ -1509,9 +1509,16 @@ function processarBufferXLSX(data, fonte, dataAtualizacao) {
     const galpoesOk = Object.entries(resumo).filter(([_,r]) => !r.erro).map(([g])=>g);
     if (!galpoesOk.length) throw new Error('Nenhuma aba pôde ser processada.');
 
-    // Define qual galpão exibir: prioriza Serra se disponível
-    if (galpoesOk.includes('serra')) state.galpaoAtivo = 'serra';
-    else if (galpoesOk.includes('extrema')) state.galpaoAtivo = 'extrema';
+    // Define qual galpão exibir:
+    // - Se ambos os galpões foram processados → "Total" (Serra + Extrema)
+    // - Se só um foi processado → esse mesmo
+    if (galpoesOk.includes('serra') && galpoesOk.includes('extrema')) {
+      state.galpaoAtivo = 'todos';
+    } else if (galpoesOk.includes('serra')) {
+      state.galpaoAtivo = 'serra';
+    } else if (galpoesOk.includes('extrema')) {
+      state.galpaoAtivo = 'extrema';
+    }
 
     atualizarSeletorGalpao();
     atualizarBadgeFonte(fonte, dataAtualizacao);
