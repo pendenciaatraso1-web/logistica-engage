@@ -86,6 +86,14 @@
   .chart-wrap.tall{height:420px}
 
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+  .select-filter{padding:9px 13px;border:1px solid var(--border-2);border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;background:#fff;color:var(--ink);cursor:pointer;outline:none;transition:border-color .15s,box-shadow .15s;min-width:140px}
+  .select-filter:hover{border-color:var(--primary-2)}
+  .select-filter:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+  .select-filter:disabled{background:#F1F5F9;color:var(--muted);cursor:not-allowed}
+  .filter-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 12px;background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;border-radius:99px;font-size:12px;font-weight:600;font-family:inherit}
+  .filter-tag-clear{width:18px;height:18px;border-radius:50%;background:#1E40AF;color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;padding:0}
+  .filter-tag-clear:hover{background:#1E3A8A;transform:scale(1.1)}
+  .table-filter-row{font-size:11.5px;color:var(--ink-2);background:#EFF6FF;padding:6px 14px;border-bottom:1px solid #BFDBFE;font-style:italic}
   .input{padding:9px 13px;border:1px solid var(--border-2);border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s;outline:none;min-width:240px}
   .input:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
   .btn{padding:9px 16px;border:none;border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
@@ -101,6 +109,14 @@
   thead th.sortable::after{content:'⇅';opacity:.3;margin-left:5px;font-size:11px;display:inline-block}
   thead th.sort-asc::after{content:'▲';opacity:.9;color:var(--primary);margin-left:5px;font-size:9px}
   thead th.sort-desc::after{content:'▼';opacity:.9;color:var(--primary);margin-left:5px;font-size:9px}
+
+  /* Selects de filtro UF/Cidade */
+  .filter-select{padding:9px 12px;border:1px solid var(--border-2);border-radius:var(--radius-sm);font-size:13.5px;font-family:inherit;background:#fff;color:var(--ink);cursor:pointer;outline:none;transition:border-color .15s,box-shadow .15s;min-width:140px;max-width:240px}
+  .filter-select:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+  .filter-select:disabled{background:#F1F5F9;color:var(--muted);cursor:not-allowed}
+  .filter-select[data-active="true"]{border-color:var(--primary-2);background:#EFF6FF;font-weight:600;color:var(--primary)}
+  .filter-indicator{padding:6px 12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-sm);font-size:12px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+  .filter-indicator strong{color:var(--primary)}
   tbody td{padding:12px 14px;border-bottom:1px solid var(--border)}
   tbody td.numeric{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   tbody tr{transition:background .12s}
@@ -371,10 +387,17 @@
 
     <div class="panel">
       <h2><span class="h2-icon">📋</span>Detalhamento Completo</h2>
-      <div class="toolbar">
-        <input type="text" class="input" id="searchVolTransp" placeholder="🔍 Buscar transportadora..." />
+      <div class="toolbar" style="margin-bottom:8px;">
+        <input type="text" class="input" id="searchVolTransp" placeholder="🔍 Buscar transportadora..." style="flex:1;min-width:200px;" />
+        <select class="filter-select" id="filtroUF_volTransp" onchange="setFiltroUF('volTransp', this.value)" title="Filtrar por UF">
+          <option value="">Todas as UFs</option>
+        </select>
+        <select class="filter-select" id="filtroCidade_volTransp" onchange="setFiltroCidade('volTransp', this.value)" title="Filtrar por cidade">
+          <option value="">Todas as cidades</option>
+        </select>
         <button class="btn btn-ghost" onclick="exportarVolTransp()">⬇ Exportar CSV</button>
       </div>
+      <div id="filtroAtivo_volTransp" style="margin-bottom:12px;"></div>
       <div class="table-wrap">
         <table id="tableVolTransp">
           <thead id="theadVolTransp"></thead>
@@ -435,10 +458,17 @@
 
     <div class="panel">
       <h2><span class="h2-icon">📋</span>Detalhamento Completo</h2>
-      <div class="toolbar">
-        <input type="text" class="input" id="searchCubTransp" placeholder="🔍 Buscar transportadora..." />
+      <div class="toolbar" style="margin-bottom:8px;">
+        <input type="text" class="input" id="searchCubTransp" placeholder="🔍 Buscar transportadora..." style="flex:1;min-width:200px;" />
+        <select class="filter-select" id="filtroUF_cubTransp" onchange="setFiltroUF('cubTransp', this.value)" title="Filtrar por UF">
+          <option value="">Todas as UFs</option>
+        </select>
+        <select class="filter-select" id="filtroCidade_cubTransp" onchange="setFiltroCidade('cubTransp', this.value)" title="Filtrar por cidade">
+          <option value="">Todas as cidades</option>
+        </select>
         <button class="btn btn-ghost" onclick="exportarCubTransp()">⬇ Exportar CSV</button>
       </div>
+      <div id="filtroAtivo_cubTransp" style="margin-bottom:12px;"></div>
       <div class="table-wrap">
         <table id="tableCubTransp">
           <thead id="theadCubTransp"></thead>
@@ -470,10 +500,17 @@
 
     <div class="panel">
       <h2><span class="h2-icon">📋</span>Detalhamento Completo</h2>
-      <div class="toolbar">
-        <input type="text" class="input" id="searchVolCarregado" placeholder="🔍 Buscar transportadora..." />
+      <div class="toolbar" style="margin-bottom:8px;">
+        <input type="text" class="input" id="searchVolCarregado" placeholder="🔍 Buscar transportadora..." style="flex:1;min-width:200px;" />
+        <select class="filter-select" id="filtroUF_volCarregado" onchange="setFiltroUF('volCarregado', this.value)" title="Filtrar por UF">
+          <option value="">Todas as UFs</option>
+        </select>
+        <select class="filter-select" id="filtroCidade_volCarregado" onchange="setFiltroCidade('volCarregado', this.value)" title="Filtrar por cidade">
+          <option value="">Todas as cidades</option>
+        </select>
         <button class="btn btn-ghost" onclick="exportarVolCarregado()">⬇ Exportar CSV</button>
       </div>
+      <div id="filtroAtivo_volCarregado" style="margin-bottom:12px;"></div>
       <div class="table-wrap">
         <table id="tableVolCarregado">
           <thead id="theadVolCarregado"></thead>
@@ -513,10 +550,17 @@
 
     <div class="panel">
       <h2><span class="h2-icon" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);">📋</span>Lista Detalhada de NFs Atrasadas</h2>
-      <div class="toolbar">
-        <input type="text" class="input" id="searchAtrasados" placeholder="🔍 Buscar transportadora ou NF..." />
+      <div class="toolbar" style="margin-bottom:8px;">
+        <input type="text" class="input" id="searchAtrasados" placeholder="🔍 Buscar transportadora ou NF..." style="flex:1;min-width:200px;" />
+        <select class="filter-select" id="filtroUF_atrasados" onchange="setFiltroUF('atrasados', this.value)" title="Filtrar por UF">
+          <option value="">Todas as UFs</option>
+        </select>
+        <select class="filter-select" id="filtroCidade_atrasados" onchange="setFiltroCidade('atrasados', this.value)" title="Filtrar por cidade">
+          <option value="">Todas as cidades</option>
+        </select>
         <button class="btn btn-ghost" onclick="exportarAtrasados()">⬇ Exportar CSV</button>
       </div>
+      <div id="filtroAtivo_atrasados" style="margin-bottom:12px;"></div>
       <div class="table-wrap">
         <table id="tableAtrasados">
           <thead id="theadAtrasados"></thead>
@@ -538,6 +582,13 @@ const state = {
   galpaoAtivo: 'serra',                  // 'serra' | 'extrema' | 'todos'
   charts: {},
   busca: {volTransp:'', cubTransp:'', volCarregado:'', atrasados:''},
+  // Filtros UF/Cidade por aba (independentes)
+  filtros: {
+    volTransp:    { uf:'', cidade:'' },
+    cubTransp:    { uf:'', cidade:'' },
+    volCarregado: { uf:'', cidade:'' },
+    atrasados:    { uf:'', cidade:'' }
+  },
   // Ordenação de cada tabela: { coluna: 'nome', dir: 'asc'|'desc' }
   ordem: {
     volTransp:    { coluna: 'volumes',   dir: 'desc' },
@@ -634,6 +685,10 @@ function selecionarGalpao(galpao) {
   if (galpao === 'todos' && !state.dados.serra.length && !state.dados.extrema.length) return;
 
   state.galpaoAtivo = galpao;
+  // Limpa filtros UF/Cidade ao trocar galpão (dados base mudam)
+  ['volTransp','cubTransp','volCarregado','atrasados'].forEach(aba => {
+    state.filtros[aba] = { uf:'', cidade:'' };
+  });
   atualizarSeletorGalpao();
   if (state.nfs.length) renderTudo();
 }
@@ -729,6 +784,9 @@ function agruparPorTransp(filtrados) {
 function renderTudo() {
   if (!state.nfs.length) return;
   document.getElementById('emptyState').style.display = 'none';
+  // Inicializa/atualiza os dropdowns de filtros (UF/Cidade) ANTES dos renders
+  // para que cada aba já tenha seus dropdowns populados com base nos dados atuais
+  inicializarFiltros();
   renderVolGeral();
   renderVolTransp();
   renderCubGeral();
@@ -780,27 +838,28 @@ function renderAlertStrip() {
    ABA ATRASADOS
    ============================================================ */
 function renderAtrasados() {
-  const atrasados = calcularAtrasados();
-  const total = atrasados.length;
+  const baseAtrasados = calcularAtrasados();
 
-  document.getElementById('atrasadosTotal').textContent = total.toLocaleString('pt-BR');
+  // KPIs por dias e ranking usam dados SEM filtro UF/Cidade (visão geral)
+  const totalGeral = baseAtrasados.length;
+  document.getElementById('atrasadosTotal').textContent = totalGeral.toLocaleString('pt-BR');
   const hoje = new Date();
   document.getElementById('atrasadosDataRef').textContent =
     `Referência: ${hoje.toLocaleDateString('pt-BR')}`;
 
-  // KPIs por dias
-  const c3 = atrasados.filter(n => n.diasAguardando === 3).length;
-  const c4 = atrasados.filter(n => n.diasAguardando === 4).length;
-  const c5 = atrasados.filter(n => n.diasAguardando === 5).length;
-  const c6mais = atrasados.filter(n => n.diasAguardando >= 6).length;
+  // KPIs por dias (geral)
+  const c3 = baseAtrasados.filter(n => n.diasAguardando === 3).length;
+  const c4 = baseAtrasados.filter(n => n.diasAguardando === 4).length;
+  const c5 = baseAtrasados.filter(n => n.diasAguardando === 5).length;
+  const c6mais = baseAtrasados.filter(n => n.diasAguardando >= 6).length;
   document.getElementById('atras3').textContent = c3;
   document.getElementById('atras4').textContent = c4;
   document.getElementById('atras5').textContent = c5;
   document.getElementById('atras6mais').textContent = c6mais;
 
-  // Ranking por transportadora (Top 10)
+  // Ranking por transportadora (Top 10) — usa dados sem filtro
   const porTransp = {};
-  atrasados.forEach(n => {
+  baseAtrasados.forEach(n => {
     if (!porTransp[n.transp]) porTransp[n.transp] = {transp:n.transp, qtd:0, maxDias:0, volumes:0};
     porTransp[n.transp].qtd++;
     porTransp[n.transp].volumes += n.volumes;
@@ -821,6 +880,9 @@ function renderAtrasados() {
       <div class="rank-value" style="color:#DC2626;">${x.qtd.toLocaleString('pt-BR')}<small>NFs atrasadas</small></div>
     </div>
   `).join('') : '<div class="empty"><div class="empty-icon">✅</div>Nenhum pedido atrasado!</div>';
+
+  // ============= TABELA DETALHADA: aplica filtro UF/Cidade =============
+  const atrasados = aplicarFiltrosLocais(baseAtrasados, 'atrasados');
 
   // Tabela
   let dadosFiltrados = atrasados.slice();
@@ -934,40 +996,47 @@ function renderVolGeral() {
    ABA 2 - VOLUMETRIA POR TRANSPORTADORA (Q, só Aguardando)
    ============================================================ */
 function renderVolTransp() {
-  const filtrados = filtrarPorStatus(STATUS_AGUARDANDO);
-  const grupos = agruparPorTransp(filtrados);
-  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
-  document.getElementById('volTranspTotal').textContent = total.toLocaleString('pt-BR');
+  const baseStatus = filtrarPorStatus(STATUS_AGUARDANDO);
 
-  const sorted = grupos.slice().sort((a,b) => b.volumes - a.volumes);
-  const top = sorted.slice(0,10);
+  // Rankings e KPI hero usam o conjunto SEM filtro de UF/Cidade (geral)
+  const gruposGeral = agruparPorTransp(baseStatus);
+  const totalGeral = baseStatus.reduce((s,n) => s + n.volumes, 0);
+  document.getElementById('volTranspTotal').textContent = totalGeral.toLocaleString('pt-BR');
+
+  const sortedGeral = gruposGeral.slice().sort((a,b) => b.volumes - a.volumes);
+  const top = sortedGeral.slice(0,10);
   const max = top[0]?.volumes || 1;
 
-  // Ranking visual
+  // Ranking visual (não muda com filtro)
   document.getElementById('rankingVolTransp').innerHTML = top.length ? top.map((x,i) => `
     <div class="rank-item clickable" onclick="abrirModalTransp(${escTransp(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
-        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.volumes/x.nfs:0).toFixed(1)} vol/NF · ${(total>0?x.volumes/total*100:0).toFixed(1)}% do total</div>
+        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.volumes/x.nfs:0).toFixed(1)} vol/NF · ${(totalGeral>0?x.volumes/totalGeral*100:0).toFixed(1)}% do total</div>
         <div class="rank-bar"><div class="rank-fill" style="width:${(x.volumes/max*100).toFixed(0)}%"></div></div>
       </div>
       <div class="rank-value">${x.volumes.toLocaleString('pt-BR')}<small>volumes</small></div>
     </div>
   `).join('') : '<div class="empty">Sem dados.</div>';
 
-  // Tabela detalhada
+  // ============= TABELA DETALHADA: aplica filtro UF/Cidade =============
+  const filtrados = aplicarFiltrosLocais(baseStatus, 'volTransp');
+  const grupos = agruparPorTransp(filtrados);
+  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
+  const sorted = grupos.slice().sort((a,b) => b.volumes - a.volumes);
+
   let dadosFiltrados = sorted;
   if (state.busca.volTransp) {
     dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.volTransp));
   }
-  // Mapa de rank original (preserva mesmo se mudar ordenação)
+  // Mapa de rank — usa o ranking SEM filtro (a posição "real" da transportadora)
   const rankMap = {};
-  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+  sortedGeral.forEach((g,i) => rankMap[g.transp] = i+1);
 
-  // Aplica ordenação configurável (com extratores específicos da tabela)
+  // Aplica ordenação configurável
   dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'volTransp', {
-    rank:    d => rankMap[d.transp],
+    rank:    d => rankMap[d.transp] || 999,
     transp:  d => d.transp,
     volumes: d => d.volumes,
     nfs:     d => d.nfs,
@@ -994,7 +1063,7 @@ function renderVolTransp() {
 
   let html = dadosFiltrados.map(d => `
     <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'aguardando')" title="Ver pedidos">
-      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
+      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp] || '—'}</td>
       <td style="font-weight:700;color:var(--primary);">${d.transp}</td>
       <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
       <td class="numeric">${d.nfs.toLocaleString('pt-BR')}</td>
@@ -1073,13 +1142,15 @@ function renderCubGeral() {
    ABA 4 - CUBAGEM POR TRANSPORTADORA (S, só Aguardando)
    ============================================================ */
 function renderCubTransp() {
-  const filtrados = filtrarPorStatus(STATUS_AGUARDANDO);
-  const grupos = agruparPorTransp(filtrados);
-  const total = filtrados.reduce((s,n) => s + n.cubagem, 0);
-  document.getElementById('cubTranspTotal').textContent = total.toLocaleString('pt-BR',{maximumFractionDigits:2,minimumFractionDigits:2});
+  const baseStatus = filtrarPorStatus(STATUS_AGUARDANDO);
 
-  const sorted = grupos.slice().sort((a,b) => b.cubagem - a.cubagem);
-  const top = sorted.slice(0,10);
+  // Rankings e KPI hero usam o conjunto SEM filtro de UF/Cidade (geral)
+  const gruposGeral = agruparPorTransp(baseStatus);
+  const totalGeral = baseStatus.reduce((s,n) => s + n.cubagem, 0);
+  document.getElementById('cubTranspTotal').textContent = totalGeral.toLocaleString('pt-BR',{maximumFractionDigits:2,minimumFractionDigits:2});
+
+  const sortedGeral = gruposGeral.slice().sort((a,b) => b.cubagem - a.cubagem);
+  const top = sortedGeral.slice(0,10);
   const max = top[0]?.cubagem || 1;
 
   document.getElementById('rankingCubTransp').innerHTML = top.length ? top.map((x,i) => `
@@ -1087,22 +1158,28 @@ function renderCubTransp() {
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
-        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.cubagem/x.nfs:0).toFixed(3)} m³/NF · ${(total>0?x.cubagem/total*100:0).toFixed(1)}% do total</div>
+        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.cubagem/x.nfs:0).toFixed(3)} m³/NF · ${(totalGeral>0?x.cubagem/totalGeral*100:0).toFixed(1)}% do total</div>
         <div class="rank-bar"><div class="rank-fill" style="width:${(x.cubagem/max*100).toFixed(0)}%;background:linear-gradient(90deg,#5B21B6,#A78BFA);"></div></div>
       </div>
       <div class="rank-value">${x.cubagem.toFixed(2)}<small>m³ totais</small></div>
     </div>
   `).join('') : '<div class="empty">Sem dados.</div>';
 
+  // ============= TABELA DETALHADA: aplica filtro UF/Cidade =============
+  const filtrados = aplicarFiltrosLocais(baseStatus, 'cubTransp');
+  const grupos = agruparPorTransp(filtrados);
+  const total = filtrados.reduce((s,n) => s + n.cubagem, 0);
+  const sorted = grupos.slice().sort((a,b) => b.cubagem - a.cubagem);
+
   let dadosFiltrados = sorted;
   if (state.busca.cubTransp) {
     dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.cubTransp));
   }
   const rankMap = {};
-  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+  sortedGeral.forEach((g,i) => rankMap[g.transp] = i+1);
 
   dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'cubTransp', {
-    rank:    d => rankMap[d.transp],
+    rank:    d => rankMap[d.transp] || 999,
     transp:  d => d.transp,
     cubagem: d => d.cubagem,
     nfs:     d => d.nfs,
@@ -1128,7 +1205,7 @@ function renderCubTransp() {
 
   let html = dadosFiltrados.map(d => `
     <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'aguardando')" title="Ver pedidos">
-      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
+      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp] || '—'}</td>
       <td style="font-weight:700;color:var(--purple);">${d.transp}</td>
       <td class="numeric">${d.cubagem.toFixed(4)}</td>
       <td class="numeric">${d.nfs.toLocaleString('pt-BR')}</td>
@@ -1169,13 +1246,15 @@ function exportarCubTransp() {
    ABA 5 - VOLUME TOTAL CARREGADO (Q, só Expedição Completa)
    ============================================================ */
 function renderVolCarregado() {
-  const filtrados = filtrarPorStatus(STATUS_COMPLETA);
-  const grupos = agruparPorTransp(filtrados);
-  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
-  document.getElementById('volCarregadoTotal').textContent = total.toLocaleString('pt-BR');
+  const baseStatus = filtrarPorStatus(STATUS_COMPLETA);
 
-  const sorted = grupos.slice().sort((a,b) => b.volumes - a.volumes);
-  const top = sorted.slice(0,10);
+  // Rankings e KPI hero usam o conjunto SEM filtro de UF/Cidade (geral)
+  const gruposGeral = agruparPorTransp(baseStatus);
+  const totalGeral = baseStatus.reduce((s,n) => s + n.volumes, 0);
+  document.getElementById('volCarregadoTotal').textContent = totalGeral.toLocaleString('pt-BR');
+
+  const sortedGeral = gruposGeral.slice().sort((a,b) => b.volumes - a.volumes);
+  const top = sortedGeral.slice(0,10);
   const max = top[0]?.volumes || 1;
 
   document.getElementById('rankingVolCarregado').innerHTML = top.length ? top.map((x,i) => `
@@ -1183,22 +1262,28 @@ function renderVolCarregado() {
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
-        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.volumes/x.nfs:0).toFixed(1)} vol/NF · ${(total>0?x.volumes/total*100:0).toFixed(1)}% do total</div>
+        <div class="rank-meta">${x.nfs.toLocaleString('pt-BR')} NFs · ${(x.nfs>0?x.volumes/x.nfs:0).toFixed(1)} vol/NF · ${(totalGeral>0?x.volumes/totalGeral*100:0).toFixed(1)}% do total</div>
         <div class="rank-bar"><div class="rank-fill" style="width:${(x.volumes/max*100).toFixed(0)}%;background:linear-gradient(90deg,#065F46,#10B981);"></div></div>
       </div>
       <div class="rank-value">${x.volumes.toLocaleString('pt-BR')}<small>volumes</small></div>
     </div>
   `).join('') : '<div class="empty">Sem dados.</div>';
 
+  // ============= TABELA DETALHADA: aplica filtro UF/Cidade =============
+  const filtrados = aplicarFiltrosLocais(baseStatus, 'volCarregado');
+  const grupos = agruparPorTransp(filtrados);
+  const total = filtrados.reduce((s,n) => s + n.volumes, 0);
+  const sorted = grupos.slice().sort((a,b) => b.volumes - a.volumes);
+
   let dadosFiltrados = sorted;
   if (state.busca.volCarregado) {
     dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.volCarregado));
   }
   const rankMap = {};
-  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+  sortedGeral.forEach((g,i) => rankMap[g.transp] = i+1);
 
   dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'volCarregado', {
-    rank:    d => rankMap[d.transp],
+    rank:    d => rankMap[d.transp] || 999,
     transp:  d => d.transp,
     volumes: d => d.volumes,
     nfs:     d => d.nfs,
@@ -1224,7 +1309,7 @@ function renderVolCarregado() {
 
   let html = dadosFiltrados.map(d => `
     <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'completa')" title="Ver pedidos expedidos">
-      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
+      <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp] || '—'}</td>
       <td style="font-weight:700;color:var(--ok);">${d.transp}</td>
       <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
       <td class="numeric">${d.nfs.toLocaleString('pt-BR')}</td>
@@ -1569,6 +1654,107 @@ function classeTh(tabelaId, coluna) {
     return o.dir === 'asc' ? 'sort-asc' : 'sort-desc';
   }
   return 'sortable';
+}
+
+/* ============================================================
+   FILTROS UF / CIDADE (independentes por aba)
+   ============================================================ */
+// Aplica os filtros UF/Cidade de uma aba sobre uma lista de NFs
+function aplicarFiltrosLocais(nfs, abaId) {
+  const f = state.filtros[abaId];
+  if (!f) return nfs;
+  let r = nfs;
+  if (f.uf)     r = r.filter(n => (n.uf || '').toUpperCase() === f.uf);
+  if (f.cidade) r = r.filter(n => (n.cidade || '').toUpperCase() === f.cidade);
+  return r;
+}
+
+// Atualiza filtros e re-renderiza a aba apropriada
+function setFiltroUF(abaId, uf) {
+  state.filtros[abaId].uf = uf;
+  // Quando muda UF, limpa cidade pra evitar combinação inválida
+  state.filtros[abaId].cidade = '';
+  popularDropdownsAba(abaId);
+  rerenderAba(abaId);
+}
+
+function setFiltroCidade(abaId, cidade) {
+  state.filtros[abaId].cidade = cidade;
+  popularDropdownsAba(abaId);
+  rerenderAba(abaId);
+}
+
+function limparFiltros(abaId) {
+  state.filtros[abaId] = { uf:'', cidade:'' };
+  popularDropdownsAba(abaId);
+  rerenderAba(abaId);
+}
+
+function rerenderAba(abaId) {
+  if (abaId === 'volTransp')        renderVolTransp();
+  else if (abaId === 'cubTransp')    renderCubTransp();
+  else if (abaId === 'volCarregado') renderVolCarregado();
+  else if (abaId === 'atrasados')    renderAtrasados();
+}
+
+// Retorna as NFs base de uma aba (sem filtros UF/Cidade aplicados, mas já filtradas por galpão e status)
+function getNFsBase(abaId) {
+  if (abaId === 'atrasados') return calcularAtrasados();
+  if (abaId === 'volCarregado') return filtrarPorStatus(STATUS_COMPLETA);
+  return filtrarPorStatus(STATUS_AGUARDANDO); // volTransp e cubTransp
+}
+
+// Popula os dropdowns de UF e Cidade da aba (lista UFs/cidades disponíveis nos dados base)
+function popularDropdownsAba(abaId) {
+  const base = getNFsBase(abaId);
+  const f = state.filtros[abaId];
+
+  // Lista de UFs disponíveis nos dados base
+  const ufs = new Set();
+  base.forEach(n => { if (n.uf) ufs.add((n.uf || '').toUpperCase()); });
+  const ufsOrdenadas = Array.from(ufs).sort();
+
+  const selUF = document.getElementById('filtroUF_' + abaId);
+  if (selUF) {
+    selUF.innerHTML = '<option value="">Todas as UFs</option>' +
+      ufsOrdenadas.map(u => `<option value="${u}" ${f.uf === u ? 'selected':''}>${u}</option>`).join('');
+    selUF.setAttribute('data-active', f.uf ? 'true' : 'false');
+  }
+
+  // Lista de cidades — se UF está selecionada, filtra pela UF
+  const cidades = new Set();
+  const baseCidades = f.uf ? base.filter(n => (n.uf || '').toUpperCase() === f.uf) : base;
+  baseCidades.forEach(n => { if (n.cidade) cidades.add((n.cidade || '').toUpperCase()); });
+  const cidadesOrdenadas = Array.from(cidades).sort();
+
+  const selCidade = document.getElementById('filtroCidade_' + abaId);
+  if (selCidade) {
+    selCidade.disabled = !f.uf && cidadesOrdenadas.length > 200; // se sem UF e muitas cidades, sugere escolher UF primeiro
+    const placeholder = f.uf
+      ? `Todas as cidades (${cidadesOrdenadas.length})`
+      : (cidadesOrdenadas.length > 200 ? 'Selecione uma UF primeiro' : `Todas as cidades (${cidadesOrdenadas.length})`);
+    selCidade.innerHTML = `<option value="">${placeholder}</option>` +
+      cidadesOrdenadas.map(c => `<option value="${c}" ${f.cidade === c ? 'selected':''}>${c}</option>`).join('');
+    selCidade.setAttribute('data-active', f.cidade ? 'true' : 'false');
+  }
+
+  // Atualiza indicador visual de filtros ativos
+  const indicator = document.getElementById('filtroAtivo_' + abaId);
+  if (indicator) {
+    if (f.uf || f.cidade) {
+      const partes = [];
+      if (f.uf) partes.push(`UF: <strong>${f.uf}</strong>`);
+      if (f.cidade) partes.push(`Cidade: <strong>${f.cidade}</strong>`);
+      indicator.innerHTML = `<span style="font-size:12px;color:var(--primary);font-weight:600;">🎯 Filtrando ${partes.join(' · ')}</span> · <a href="#" onclick="limparFiltros('${abaId}');return false;" style="font-size:12px;color:var(--danger);text-decoration:underline;">limpar</a>`;
+    } else {
+      indicator.innerHTML = '';
+    }
+  }
+}
+
+// Inicializa dropdowns de todas as abas (chamado depois de carregar dados)
+function inicializarFiltros() {
+  ['volTransp','cubTransp','volCarregado','atrasados'].forEach(popularDropdownsAba);
 }
 
 /* ============================================================
