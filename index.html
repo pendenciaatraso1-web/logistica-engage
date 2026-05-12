@@ -98,6 +98,9 @@
   thead th{text-align:left;padding:11px 14px;background:#F8FAFC;color:var(--ink-2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);position:sticky;top:0;cursor:pointer;user-select:none;white-space:nowrap}
   thead th:hover{background:#F1F5F9;color:var(--ink)}
   thead th.numeric{text-align:right}
+  thead th.sortable::after{content:'⇅';opacity:.3;margin-left:5px;font-size:11px;display:inline-block}
+  thead th.sort-asc::after{content:'▲';opacity:.9;color:var(--primary);margin-left:5px;font-size:9px}
+  thead th.sort-desc::after{content:'▼';opacity:.9;color:var(--primary);margin-left:5px;font-size:9px}
   tbody td{padding:12px 14px;border-bottom:1px solid var(--border)}
   tbody td.numeric{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   tbody tr{transition:background .12s}
@@ -374,16 +377,7 @@
       </div>
       <div class="table-wrap">
         <table id="tableVolTransp">
-          <thead>
-            <tr>
-              <th class="numeric" style="width:70px;">#</th>
-              <th>Transportadora</th>
-              <th class="numeric">Volumes</th>
-              <th class="numeric">NFs</th>
-              <th class="numeric">Média Vol/NF</th>
-              <th class="numeric">% do Total</th>
-            </tr>
-          </thead>
+          <thead id="theadVolTransp"></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -447,16 +441,7 @@
       </div>
       <div class="table-wrap">
         <table id="tableCubTransp">
-          <thead>
-            <tr>
-              <th class="numeric" style="width:70px;">#</th>
-              <th>Transportadora</th>
-              <th class="numeric">Cubagem (m³)</th>
-              <th class="numeric">NFs</th>
-              <th class="numeric">Média m³/NF</th>
-              <th class="numeric">% do Total</th>
-            </tr>
-          </thead>
+          <thead id="theadCubTransp"></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -491,16 +476,7 @@
       </div>
       <div class="table-wrap">
         <table id="tableVolCarregado">
-          <thead>
-            <tr>
-              <th class="numeric" style="width:70px;">#</th>
-              <th>Transportadora</th>
-              <th class="numeric">Volumes Carregados</th>
-              <th class="numeric">NFs</th>
-              <th class="numeric">Média Vol/NF</th>
-              <th class="numeric">% do Total</th>
-            </tr>
-          </thead>
+          <thead id="theadVolCarregado"></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -543,17 +519,7 @@
       </div>
       <div class="table-wrap">
         <table id="tableAtrasados">
-          <thead>
-            <tr>
-              <th>NF Número</th>
-              <th>Transportadora</th>
-              <th class="numeric">Emissão</th>
-              <th class="numeric">Dias Aguardando</th>
-              <th class="numeric">Volumes</th>
-              <th class="numeric">Cubagem (m³)</th>
-              <th>Destino</th>
-            </tr>
-          </thead>
+          <thead id="theadAtrasados"></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -571,7 +537,15 @@ const state = {
   dados: { serra: [], extrema: [] },     // NFs separadas por galpão
   galpaoAtivo: 'serra',                  // 'serra' | 'extrema' | 'todos'
   charts: {},
-  busca: {volTransp:'', cubTransp:'', volCarregado:'', atrasados:''}
+  busca: {volTransp:'', cubTransp:'', volCarregado:'', atrasados:''},
+  // Ordenação de cada tabela: { coluna: 'nome', dir: 'asc'|'desc' }
+  ordem: {
+    volTransp:    { coluna: 'volumes',   dir: 'desc' },
+    cubTransp:    { coluna: 'cubagem',   dir: 'desc' },
+    volCarregado: { coluna: 'volumes',   dir: 'desc' },
+    atrasados:    { coluna: 'dias',      dir: 'desc' },
+    modal:        { coluna: 'emissao',   dir: 'desc' }
+  }
 };
 
 // Wrapper para acesso retrocompatível: state.nfs retorna sempre as NFs do galpão ativo
@@ -849,7 +823,7 @@ function renderAtrasados() {
   `).join('') : '<div class="empty"><div class="empty-icon">✅</div>Nenhum pedido atrasado!</div>';
 
   // Tabela
-  let dadosFiltrados = atrasados.slice().sort((a,b) => b.diasAguardando - a.diasAguardando);
+  let dadosFiltrados = atrasados.slice();
   if (state.busca.atrasados) {
     const busca = state.busca.atrasados;
     dadosFiltrados = dadosFiltrados.filter(d =>
@@ -857,6 +831,28 @@ function renderAtrasados() {
       String(d.numero || '').toLowerCase().includes(busca)
     );
   }
+
+  dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'atrasados', {
+    numero:  d => d.numero || '',
+    transp:  d => d.transp,
+    emissao: d => d.emissao instanceof Date ? d.emissao : null,
+    dias:    d => d.diasAguardando,
+    volumes: d => d.volumes,
+    cubagem: d => d.cubagem,
+    destino: d => `${d.cidade || ''}/${d.uf || ''}`
+  });
+
+  document.getElementById('theadAtrasados').innerHTML = `
+    <tr>
+      <th class="${classeTh('atrasados','numero')}" onclick="ordenar('atrasados','numero')">NF Número</th>
+      <th class="${classeTh('atrasados','transp')}" onclick="ordenar('atrasados','transp')">Transportadora</th>
+      <th class="numeric ${classeTh('atrasados','emissao')}" onclick="ordenar('atrasados','emissao')">Emissão</th>
+      <th class="numeric ${classeTh('atrasados','dias')}" onclick="ordenar('atrasados','dias')">Dias Aguardando</th>
+      <th class="numeric ${classeTh('atrasados','volumes')}" onclick="ordenar('atrasados','volumes')">Volumes</th>
+      <th class="numeric ${classeTh('atrasados','cubagem')}" onclick="ordenar('atrasados','cubagem')">Cubagem (m³)</th>
+      <th class="${classeTh('atrasados','destino')}" onclick="ordenar('atrasados','destino')">Destino</th>
+    </tr>`;
+
   const tbody = document.querySelector('#tableAtrasados tbody');
   if (!dadosFiltrados.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="empty"><div class="empty-icon">✅</div>Nenhum pedido atrasado encontrado.</td></tr>';
@@ -965,14 +961,36 @@ function renderVolTransp() {
   if (state.busca.volTransp) {
     dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.volTransp));
   }
+  // Mapa de rank original (preserva mesmo se mudar ordenação)
+  const rankMap = {};
+  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+
+  // Aplica ordenação configurável (com extratores específicos da tabela)
+  dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'volTransp', {
+    rank:    d => rankMap[d.transp],
+    transp:  d => d.transp,
+    volumes: d => d.volumes,
+    nfs:     d => d.nfs,
+    media:   d => d.nfs > 0 ? d.volumes/d.nfs : 0,
+    pct:     d => total > 0 ? d.volumes/total : 0
+  });
+
+  // Cabeçalho dinâmico com ordenação clicável
+  document.getElementById('theadVolTransp').innerHTML = `
+    <tr>
+      <th class="numeric ${classeTh('volTransp','rank')}" style="width:70px;" onclick="ordenar('volTransp','rank')">#</th>
+      <th class="${classeTh('volTransp','transp')}" onclick="ordenar('volTransp','transp')">Transportadora</th>
+      <th class="numeric ${classeTh('volTransp','volumes')}" onclick="ordenar('volTransp','volumes')">Volumes</th>
+      <th class="numeric ${classeTh('volTransp','nfs')}" onclick="ordenar('volTransp','nfs')">NFs</th>
+      <th class="numeric ${classeTh('volTransp','media')}" onclick="ordenar('volTransp','media')">Média Vol/NF</th>
+      <th class="numeric ${classeTh('volTransp','pct')}" onclick="ordenar('volTransp','pct')">% do Total</th>
+    </tr>`;
+
   const tbody = document.querySelector('#tableVolTransp tbody');
   if (!dadosFiltrados.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty"><div class="empty-icon">📭</div>Nenhuma transportadora encontrada.</td></tr>';
     return;
   }
-  // Mapa de rank original
-  const rankMap = {};
-  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
     <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'aguardando')" title="Ver pedidos">
@@ -1080,13 +1098,33 @@ function renderCubTransp() {
   if (state.busca.cubTransp) {
     dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.cubTransp));
   }
+  const rankMap = {};
+  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+
+  dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'cubTransp', {
+    rank:    d => rankMap[d.transp],
+    transp:  d => d.transp,
+    cubagem: d => d.cubagem,
+    nfs:     d => d.nfs,
+    media:   d => d.nfs > 0 ? d.cubagem/d.nfs : 0,
+    pct:     d => total > 0 ? d.cubagem/total : 0
+  });
+
+  document.getElementById('theadCubTransp').innerHTML = `
+    <tr>
+      <th class="numeric ${classeTh('cubTransp','rank')}" style="width:70px;" onclick="ordenar('cubTransp','rank')">#</th>
+      <th class="${classeTh('cubTransp','transp')}" onclick="ordenar('cubTransp','transp')">Transportadora</th>
+      <th class="numeric ${classeTh('cubTransp','cubagem')}" onclick="ordenar('cubTransp','cubagem')">Cubagem (m³)</th>
+      <th class="numeric ${classeTh('cubTransp','nfs')}" onclick="ordenar('cubTransp','nfs')">NFs</th>
+      <th class="numeric ${classeTh('cubTransp','media')}" onclick="ordenar('cubTransp','media')">Média m³/NF</th>
+      <th class="numeric ${classeTh('cubTransp','pct')}" onclick="ordenar('cubTransp','pct')">% do Total</th>
+    </tr>`;
+
   const tbody = document.querySelector('#tableCubTransp tbody');
   if (!dadosFiltrados.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty"><div class="empty-icon">📭</div>Nenhuma transportadora encontrada.</td></tr>';
     return;
   }
-  const rankMap = {};
-  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
     <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'aguardando')" title="Ver pedidos">
@@ -1156,13 +1194,33 @@ function renderVolCarregado() {
   if (state.busca.volCarregado) {
     dadosFiltrados = sorted.filter(d => d.transp.toLowerCase().includes(state.busca.volCarregado));
   }
+  const rankMap = {};
+  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
+
+  dadosFiltrados = aplicarOrdenacao(dadosFiltrados, 'volCarregado', {
+    rank:    d => rankMap[d.transp],
+    transp:  d => d.transp,
+    volumes: d => d.volumes,
+    nfs:     d => d.nfs,
+    media:   d => d.nfs > 0 ? d.volumes/d.nfs : 0,
+    pct:     d => total > 0 ? d.volumes/total : 0
+  });
+
+  document.getElementById('theadVolCarregado').innerHTML = `
+    <tr>
+      <th class="numeric ${classeTh('volCarregado','rank')}" style="width:70px;" onclick="ordenar('volCarregado','rank')">#</th>
+      <th class="${classeTh('volCarregado','transp')}" onclick="ordenar('volCarregado','transp')">Transportadora</th>
+      <th class="numeric ${classeTh('volCarregado','volumes')}" onclick="ordenar('volCarregado','volumes')">Volumes Carregados</th>
+      <th class="numeric ${classeTh('volCarregado','nfs')}" onclick="ordenar('volCarregado','nfs')">NFs</th>
+      <th class="numeric ${classeTh('volCarregado','media')}" onclick="ordenar('volCarregado','media')">Média Vol/NF</th>
+      <th class="numeric ${classeTh('volCarregado','pct')}" onclick="ordenar('volCarregado','pct')">% do Total</th>
+    </tr>`;
+
   const tbody = document.querySelector('#tableVolCarregado tbody');
   if (!dadosFiltrados.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty"><div class="empty-icon">📭</div>Nenhuma transportadora encontrada.</td></tr>';
     return;
   }
-  const rankMap = {};
-  sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
     <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'completa')" title="Ver pedidos expedidos">
@@ -1456,11 +1514,61 @@ function mostrarBanner(targetId, tipo, msg) {
 }
 
 // Escapa uma string para uso seguro dentro de um atributo onclick="..."
-// Retorna uma string entre aspas simples, com escape de aspas simples e backslashes.
-// Ex: "VIA PAJUÇARA"  →  "'VIA PAJU\u00c7ARA'"
-//     "O'BRIEN"        →  "'O\\'BRIEN'"
 function escTransp(s) {
   return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+}
+
+/* ============================================================
+   ORDENAÇÃO DE TABELAS (clicar no cabeçalho)
+   ============================================================ */
+// Clica na coluna; se já está ordenado por ela, inverte direção; senão, ordena ASC
+function ordenar(tabelaId, coluna) {
+  const cur = state.ordem[tabelaId];
+  if (cur && cur.coluna === coluna) {
+    cur.dir = cur.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    state.ordem[tabelaId] = { coluna, dir: 'asc' };
+  }
+  // Re-renderiza a tabela apropriada
+  if (tabelaId === 'volTransp')        renderVolTransp();
+  else if (tabelaId === 'cubTransp')    renderCubTransp();
+  else if (tabelaId === 'volCarregado') renderVolCarregado();
+  else if (tabelaId === 'atrasados')    renderAtrasados();
+  else if (tabelaId === 'modal')        renderModal();
+}
+
+// Compara dois valores genéricos: lida com números, datas (Date) e strings
+function compararValores(a, b) {
+  // null/undefined sempre por último
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  // Date
+  if (a instanceof Date && b instanceof Date) return a.getTime() - b.getTime();
+  if (a instanceof Date) return -1;
+  if (b instanceof Date) return 1;
+  // Número
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  // String (case-insensitive)
+  return String(a).localeCompare(String(b), 'pt-BR', { sensitivity:'base', numeric:true });
+}
+
+// Aplica ordenação numa lista, dado o estado da tabela e um mapa { coluna → função extratora }
+function aplicarOrdenacao(lista, tabelaId, extratores) {
+  const o = state.ordem[tabelaId];
+  if (!o || !extratores[o.coluna]) return lista;
+  const extr = extratores[o.coluna];
+  const mult = o.dir === 'asc' ? 1 : -1;
+  return lista.slice().sort((x, y) => mult * compararValores(extr(x), extr(y)));
+}
+
+// Gera o atributo de classe do <th> com indicador visual da ordenação atual
+function classeTh(tabelaId, coluna) {
+  const o = state.ordem[tabelaId];
+  if (o && o.coluna === coluna) {
+    return o.dir === 'asc' ? 'sort-asc' : 'sort-desc';
+  }
+  return 'sortable';
 }
 
 /* ============================================================
@@ -1553,16 +1661,29 @@ function renderModal() {
     );
   }
 
-  // Ordena: atrasados por dias desc; outros por data emissão desc (mais recente primeiro)
-  if (ctx === 'atrasados') {
-    dados.sort((a,b) => (b.diasAguardando || 0) - (a.diasAguardando || 0));
-  } else {
-    dados.sort((a,b) => {
-      const da = a.emissao instanceof Date ? a.emissao.getTime() : 0;
-      const db = b.emissao instanceof Date ? b.emissao.getTime() : 0;
-      return db - da;
-    });
-  }
+  // Calcula dias aguardando para cada NF (vai ser útil tanto para ordenar quanto para exibir)
+  const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
+  dados.forEach(n => {
+    if (n.diasAguardando === undefined && n.emissao instanceof Date) {
+      const em = new Date(n.emissao); em.setHours(0,0,0,0);
+      n._diasCalc = Math.floor((hoje0 - em) / 86400000);
+    } else {
+      n._diasCalc = n.diasAguardando;
+    }
+  });
+
+  // Ordenação configurável: ordem padrão é por emissão desc (ou dias desc se atrasados)
+  // O usuário pode clicar nas colunas para mudar
+  const extratoresModal = {
+    numero:  n => n.numero || '',
+    galpao:  n => n.galpao || '',
+    emissao: n => n.emissao instanceof Date ? n.emissao : null,
+    dias:    n => (n._diasCalc != null && !isNaN(n._diasCalc)) ? n._diasCalc : null,
+    volumes: n => n.volumes,
+    cubagem: n => n.cubagem,
+    destino: n => `${n.cidade || ''}/${n.uf || ''}`
+  };
+  dados = aplicarOrdenacao(dados, 'modal', extratoresModal);
 
   // Render da tabela
   const tbody = document.getElementById('modalTbody');
@@ -1582,13 +1703,7 @@ function renderModal() {
 
     let diasCol = '';
     if (mostrarDias) {
-      // calcula dias aguardando (caso seja aguardando, mostra mesmo se ≤ limite)
-      let dias = n.diasAguardando;
-      if (dias === undefined && n.emissao instanceof Date) {
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        const em = new Date(n.emissao); em.setHours(0,0,0,0);
-        dias = Math.floor((hoje - em) / 86400000);
-      }
+      const dias = n._diasCalc;
       if (dias === undefined || dias === null || isNaN(dias)) {
         diasCol = `<td class="numeric" style="color:var(--muted);">—</td>`;
       } else if (dias > DIAS_LIMITE_ATRASO) {
@@ -1610,16 +1725,16 @@ function renderModal() {
     </tr>`;
   }).join('');
 
-  // Cabeçalho da tabela (com ou sem coluna de dias)
+  // Cabeçalho da tabela (com setas de ordenação clicáveis)
   const theadHtml = `
     <tr>
-      <th>NF Número</th>
-      <th>Galpão</th>
-      <th class="numeric">Emissão</th>
-      ${mostrarDias ? '<th class="numeric">Dias</th>' : ''}
-      <th class="numeric">Volumes</th>
-      <th class="numeric">Cubagem (m³)</th>
-      <th>Destino</th>
+      <th class="${classeTh('modal','numero')}"  onclick="ordenar('modal','numero')">NF Número</th>
+      <th class="${classeTh('modal','galpao')}"  onclick="ordenar('modal','galpao')">Galpão</th>
+      <th class="numeric ${classeTh('modal','emissao')}" onclick="ordenar('modal','emissao')">Emissão</th>
+      ${mostrarDias ? `<th class="numeric ${classeTh('modal','dias')}" onclick="ordenar('modal','dias')">Dias</th>` : ''}
+      <th class="numeric ${classeTh('modal','volumes')}" onclick="ordenar('modal','volumes')">Volumes</th>
+      <th class="numeric ${classeTh('modal','cubagem')}" onclick="ordenar('modal','cubagem')">Cubagem (m³)</th>
+      <th class="${classeTh('modal','destino')}" onclick="ordenar('modal','destino')">Destino</th>
     </tr>`;
   document.getElementById('modalThead').innerHTML = theadHtml;
 
