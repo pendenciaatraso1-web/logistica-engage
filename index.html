@@ -837,7 +837,7 @@ function renderAtrasados() {
   const max = top[0]?.qtd || 1;
 
   document.getElementById('rankingAtrasados').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'atrasados')" title="Ver atrasados desta transportadora">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${escTransp(x.transp)}, 'atrasados')" title="Ver atrasados desta transportadora">
       <div class="rank-pos" style="background:linear-gradient(135deg,#7F1D1D,#DC2626);box-shadow:0 4px 10px rgba(220,38,38,.3);">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -949,7 +949,7 @@ function renderVolTransp() {
 
   // Ranking visual
   document.getElementById('rankingVolTransp').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${escTransp(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -975,7 +975,7 @@ function renderVolTransp() {
   sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
-    <tr class="clickable-row" onclick="abrirModalTransp(${JSON.stringify(d.transp)}, 'aguardando')" title="Ver pedidos">
+    <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'aguardando')" title="Ver pedidos">
       <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
       <td style="font-weight:700;color:var(--primary);">${d.transp}</td>
       <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
@@ -1065,7 +1065,7 @@ function renderCubTransp() {
   const max = top[0]?.cubagem || 1;
 
   document.getElementById('rankingCubTransp').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${escTransp(x.transp)}, 'aguardando')" title="Ver pedidos desta transportadora">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -1089,7 +1089,7 @@ function renderCubTransp() {
   sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
-    <tr class="clickable-row" onclick="abrirModalTransp(${JSON.stringify(d.transp)}, 'aguardando')" title="Ver pedidos">
+    <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'aguardando')" title="Ver pedidos">
       <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
       <td style="font-weight:700;color:var(--purple);">${d.transp}</td>
       <td class="numeric">${d.cubagem.toFixed(4)}</td>
@@ -1141,7 +1141,7 @@ function renderVolCarregado() {
   const max = top[0]?.volumes || 1;
 
   document.getElementById('rankingVolCarregado').innerHTML = top.length ? top.map((x,i) => `
-    <div class="rank-item clickable" onclick="abrirModalTransp(${JSON.stringify(x.transp)}, 'completa')" title="Ver pedidos expedidos">
+    <div class="rank-item clickable" onclick="abrirModalTransp(${escTransp(x.transp)}, 'completa')" title="Ver pedidos expedidos">
       <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'normal'}">${i+1}</div>
       <div class="rank-info">
         <div class="rank-name">${x.transp}</div>
@@ -1165,7 +1165,7 @@ function renderVolCarregado() {
   sorted.forEach((g,i) => rankMap[g.transp] = i+1);
 
   let html = dadosFiltrados.map(d => `
-    <tr class="clickable-row" onclick="abrirModalTransp(${JSON.stringify(d.transp)}, 'completa')" title="Ver pedidos expedidos">
+    <tr class="clickable-row" onclick="abrirModalTransp(${escTransp(d.transp)}, 'completa')" title="Ver pedidos expedidos">
       <td class="numeric" style="color:var(--muted);font-weight:700;">#${rankMap[d.transp]}</td>
       <td style="font-weight:700;color:var(--ok);">${d.transp}</td>
       <td class="numeric">${d.volumes.toLocaleString('pt-BR')}</td>
@@ -1453,6 +1453,14 @@ function parseData(v) {
 function mostrarBanner(targetId, tipo, msg) {
   const cls = tipo === 'ok' ? 'banner-ok' : tipo === 'warn' ? 'banner-warn' : 'banner-info';
   document.getElementById(targetId).innerHTML = `<div class="banner ${cls}">${msg}</div>`;
+}
+
+// Escapa uma string para uso seguro dentro de um atributo onclick="..."
+// Retorna uma string entre aspas simples, com escape de aspas simples e backslashes.
+// Ex: "VIA PAJUÇARA"  →  "'VIA PAJU\u00c7ARA'"
+//     "O'BRIEN"        →  "'O\\'BRIEN'"
+function escTransp(s) {
+  return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 }
 
 /* ============================================================
