@@ -321,11 +321,11 @@
   </div>
 
   <div class="tabs" role="tablist">
-    <button class="tab active" data-tab="volgeral" role="tab">📊 Volumetria Geral</button>
-    <button class="tab" data-tab="voltransp" role="tab">📦 Volumetria por Transportadora</button>
+    <button class="tab active" data-tab="voltransp" role="tab">⏳ Aguardando Expedição (Por Transportadora)</button>
+    <button class="tab" data-tab="volgeral" role="tab">📊 Volumetria Geral</button>
+    <button class="tab" data-tab="volcarregado" role="tab">📈 Volume Total Carregado</button>
     <button class="tab" data-tab="cubgeral" role="tab">🔁 Cubagem Geral</button>
     <button class="tab" data-tab="cubtransp" role="tab">🏆 Cubagem por Transportadora</button>
-    <button class="tab" data-tab="volcarregado" role="tab">📈 Volume Total Carregado</button>
     <button class="tab" data-tab="atrasados" role="tab" style="color:#DC2626;">⚠️ Atrasados</button>
   </div>
 
@@ -337,7 +337,7 @@
   </div>
 
   <!-- 1) VOLUMETRIA GERAL — Coluna Q, separa por status -->
-  <div class="tab-content active" id="tab-volgeral">
+  <div class="tab-content" id="tab-volgeral">
     <div class="hero-metric">
       <div class="hero-split">
         <div class="hero-split-item">
@@ -366,7 +366,7 @@
   </div>
 
   <!-- 2) VOLUMETRIA POR TRANSPORTADORA — Coluna Q, só Aguardando -->
-  <div class="tab-content" id="tab-voltransp">
+  <div class="tab-content active" id="tab-voltransp">
     <div class="hero-metric">
       <div class="hero-content">
         <div>
